@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Laboratorio de transformaciones lineales · Álgebra Lineal I (UIS)</title>
+<meta name="description" content="Explorador interactivo de matrices como movimientos de R² y R³: inversas, determinantes, composición y matrices no cuadradas. Taller 3 de Álgebra Lineal I (22979), UIS.">
+<style>
+:root{--uis:#006747;--uis2:#00543a;--uisl:#e4f1ea;--ink:#1e2a24;--mut:#5d6c64;--line:#d5e0da;--bg:#f5f7f6;--card:#fff;--blue:#1b5fd6;--red:#d33a35;--orange:#e5842f;--purple:#7b3fc4;--gray:#9aa7a0;--ok:#1b8a4b;--warn:#b7791f;--bad:#c0392b}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45;font-size:15px}
+header{background:var(--uis);color:#fff;padding:10px 18px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+header h1{font-size:1.05rem;margin:0;font-weight:650;letter-spacing:.2px}
+header .sub{font-size:.8rem;opacity:.92}
+header .spacer{flex:1}
+.codebox{display:flex;align-items:center;gap:6px;font-size:.85rem;background:rgba(255,255,255,.14);padding:6px 10px;border-radius:8px}
+.codebox input{width:130px;border:1px solid rgba(255,255,255,.5);border-radius:6px;padding:4px 6px;font-size:.9rem;background:#fff;color:var(--ink)}
+.progress{min-width:170px;font-size:.8rem}
+.bar{height:8px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;margin-top:3px}
+.bar>div{height:100%;background:#ffd166;width:0;transition:width .3s}
+nav.tabs{display:flex;gap:4px;padding:8px 14px 0;background:#fff;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav.tabs button{border:1px solid var(--line);border-bottom:none;background:#eef3f0;padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:.9rem;color:var(--ink)}
+nav.tabs button.active{background:#fff;color:var(--uis);font-weight:650;border-color:var(--uis)}
+main{padding:14px;max-width:1520px;margin:0 auto}
+section.tab{display:none}
+section.tab.active{display:block}
+.lab{display:grid;grid-template-columns:310px minmax(380px,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:1150px){.lab{grid-template-columns:1fr 1fr}.lab .readout{grid-column:1/-1}}
+@media (max-width:760px){.lab{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.card h3{margin:0 0 8px;font-size:.95rem;color:var(--uis)}
+.card h4{margin:10px 0 4px;font-size:.8rem;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:#fff;touch-action:none;border:1px solid var(--line)}
+.mgrid{display:inline-grid;gap:4px 8px;align-items:start;justify-items:center}
+.mgrid input[type=text]{width:70px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-size:.95rem;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.mgrid input[type=text].bad{border-color:var(--bad);background:#fff2f1}
+.mgrid input[type=range]{width:70px;margin:0}
+.mwrap{display:flex;align-items:center;gap:6px;margin:4px 0}
+.brk{font-size:2.6rem;font-weight:300;line-height:1;color:var(--ink);font-family:Georgia,serif}
+.brk.r3{font-size:3.6rem}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.row label{font-size:.85rem}
+select,button.btn,input.par{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:.86rem}
+button.btn{cursor:pointer}
+button.btn.primary{background:var(--uis);color:#fff;border-color:var(--uis)}
+button.btn.small{padding:4px 8px;font-size:.8rem}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+input.par{width:78px;font-family:ui-monospace,Menlo,Consolas,monospace;padding:4px 6px}
+.chk{display:flex;align-items:center;gap:6px;font-size:.85rem;margin:4px 0}
+table.mat{display:inline-table;border-collapse:separate;border-spacing:0;border-left:2px solid var(--ink);border-right:2px solid var(--ink);border-radius:9px;margin:2px 4px;vertical-align:middle;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88rem}
+table.mat td{padding:1px 7px;text-align:center;white-space:nowrap}
+.kv{font-size:.88rem;margin:5px 0}
+.kv b{color:var(--uis)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.78rem;font-weight:600;vertical-align:middle}
+.pill.ok{background:#dff3e6;color:var(--ok)}
+.pill.bad{background:#fde3e1;color:var(--bad)}
+.pill.warn{background:#fdf1d9;color:var(--warn)}
+.legend{font-size:.8rem;color:var(--mut);display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:middle;background:var(--c)}
+.mission{border:1px solid var(--line);border-left:5px solid var(--gray);border-radius:10px;padding:10px 12px;margin:10px 0;background:#fff}
+.mission.done{border-left-color:var(--ok)}
+.mission.active{border-left-color:var(--uis);box-shadow:0 0 0 2px #cfe6d9}
+.mission h3{margin:0;font-size:.95rem}
+.mission .ref{color:var(--mut);font-size:.78rem}
+.mission ol{margin:6px 0 6px 18px;padding:0;font-size:.88rem}
+.mission ol li{margin:3px 0}
+.minput{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.86rem;margin:6px 0}
+.minput input[type=text]{width:76px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.minput select{max-width:100%}
+.msg{font-size:.85rem;margin-top:6px;padding:6px 8px;border-radius:8px}
+.msg.ok{background:#dff3e6;color:#145c33}
+.msg.bad{background:#fde3e1;color:#7f2a24}
+.note{font-size:.85rem;background:var(--uisl);border-left:4px solid var(--uis);padding:8px 10px;border-radius:6px;margin-top:8px}
+.teo{max-width:1000px;margin:0 auto}
+.teo h2{color:var(--uis);font-size:1.15rem;margin:18px 0 6px}
+.teo table{border-collapse:collapse;width:100%;font-size:.88rem;background:#fff}
+.teo th,.teo td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.teo th{background:var(--uisl)}
+.warnbox{background:#fff7e6;border-left:4px solid var(--warn);padding:8px 10px;border-radius:6px;font-size:.9rem;margin:10px 0}
+.evalbox{background:#fde3e1;border-left:4px solid var(--bad);padding:8px 10px;border-radius:6px;font-size:.9rem;margin:10px 0}
+.const{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.1rem;background:#fff;border:2px dashed var(--uis);padding:8px 12px;border-radius:8px;display:inline-block;margin-top:6px}
+footer{font-size:.78rem;color:var(--mut);text-align:center;padding:14px}
+.tiny{font-size:.78rem;color:var(--mut)}
+details summary{cursor:pointer;color:var(--uis);font-weight:600;font-size:.9rem}
+.vec{font-family:ui-monospace,Menlo,Consolas,monospace}
+.hint{font-size:.8rem;color:var(--mut);margin-top:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+.mission-active-box{margin-bottom:12px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Laboratorio de transformaciones lineales</h1>
+    <div class="sub">Álgebra Lineal I (22979) · UIS · Taller 3 · <b>actividad evaluativa del tercer parcial</b></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="codebox"><label for="codigo">Código UIS:</label><input id="codigo" placeholder="p. ej. 2210123" inputmode="numeric"></div>
+  <div class="progress"><div>Misiones completadas: <b id="prog-txt">0/12</b></div><div class="bar"><div id="prog-bar"></div></div></div>
+</header>
+<nav class="tabs" id="tabs">
+  <button data-tab="mis" class="active">Guía y misiones</button>
+  <button data-tab="r2">R² · el plano</button>
+  <button data-tab="r3">R³ · el espacio</button>
+  <button data-tab="ns">R² ↔ R³ · no cuadradas</button>
+  <button data-tab="teo">Síntesis teórica</button>
+</nav>
+<main>
+
+<!-- ============ MISIONES ============ -->
+<section class="tab active" id="tab-mis">
+  <div class="teo">
+    <div class="evalbox"><b>Esta actividad es evaluativa:</b> hace parte de la nota del <b>tercer parcial</b> de Álgebra Lineal I. La calificación se obtiene en el cuestionario <b>Taller 3</b> de Moodle, cuyas preguntas son <b>conceptuales</b> e indagan por lo que usted observó y entendió al realizar las 12 misiones de este laboratorio. No basta con obtener números: hay que explicar <em>por qué</em>.</div>
+    <div class="card">
+      <h3>Cómo trabajar</h3>
+      <ol style="font-size:.9rem;margin:0 0 0 18px">
+        <li>Escriba su <b>código UIS</b> arriba a la derecha (se necesita para generar la constancia).</li>
+        <li>Realice las <b>12 misiones</b> en orden. Cada una indica la pestaña donde se trabaja, los pasos y lo que debe responder. Pulse <b>Comprobar</b>: la app verifica la matriz configurada y sus respuestas. El progreso se guarda en este navegador.</li>
+        <li>Lea la <b>Síntesis teórica</b> al terminar: resume lo que debe quedar claro de las misiones.</li>
+        <li>Con las 12 misiones completas, copie la <b>constancia</b> que aparece al final y responda el cuestionario <b>Taller 3</b> en Moodle (3 intentos; cuenta la nota más alta). Las preguntas del cuestionario suponen que usted hizo las misiones.</li>
+      </ol>
+      <div class="hint">Notación: una matriz 2×2 se escribe [[a, b], [c, d]] (filas). Los campos numéricos aceptan expresiones como <span class="vec">1/3</span>, <span class="vec">sqrt(3)/2</span>, <span class="vec">cos(60)</span> (grados), <span class="vec">-0,5</span>. Referencias «Ej. n» = ejercicio n de la miscelánea de matrices, sistemas y determinantes.</div>
+    </div>
+    <div id="verificador"></div>
+    <div id="lista-misiones"></div>
+    <div class="card" id="constancia-card" style="display:none"><h3>Constancia de laboratorio</h3><div id="constancia-txt"></div></div>
+  </div>
+</section>
+
+<!-- ============ R2 ============ -->
+<section class="tab" id="tab-r2">
+  <div id="mis-r2" class="mission-active-box"></div>
+  <div class="lab">
+    <div class="card controls">
+      <h3>Matriz A (2×2)</h3>
+      <div class="mwrap"><span class="brk">(</span><div class="mgrid" id="A2grid" style="grid-template-columns:1fr 1fr"></div><span class="brk">)</span></div>
+      <div class="row">
+        <button class="btn small" data-act="id2">Identidad</button>
+        <button class="btn small" data-act="tr2">Transponer</button>
+        <button class="btn small" data-act="neg2">−A</button>
+      </div>
+      <h4>Catálogo de movimientos del plano</h4>
+      <div class="row"><select id="cat2">
+        <option value="id">Identidad</option>
+        <option value="estir">Estiramiento (x,y) ↦ (c₁x, c₂y)</option>
+        <option value="rot">Rotación antihoraria de ángulo θ</option>
+        <option value="refl">Reflexión respecto de la recta de ángulo θ</option>
+        <option value="proy">Proyección ortogonal sobre la recta de ángulo θ</option>
+        <option value="cizh">Cizalla horizontal [[1,c],[0,1]]</option>
+        <option value="cizv">Cizalla vertical [[1,0],[c,1]]</option>
+        <option value="homo">Homotecia x ↦ k·x</option>
+        <option value="comp">Multiplicar por el complejo w = a + bi</option>
+      </select></div>
+      <div class="row" id="cat2params"></div>
+      <div class="row"><button class="btn primary small" data-act="cat2A">Usar como A</button><button class="btn small" data-act="cat2B">Usar como B</button></div>
+      <h4>Figura</h4>
+      <div class="row"><select id="fig2"><option value="F">Letra F</option><option value="casa">Casa</option><option value="tri">Triángulo (0,0),(1,0),(0,1)</option><option value="disco">Disco unitario</option></select></div>
+      <h4>Animación del movimiento</h4>
+      <div class="row"><button class="btn primary small" data-act="anim2">▶ Animar</button><label>t = <span id="t2txt">1</span></label></div>
+      <input type="range" id="t2" min="0" max="1" step="0.01" value="1">
+      <div class="hint">t = 0 muestra la figura original; t = 1 su imagen bajo A (o bajo la composición).</div>
+      <h4>Inversa</h4>
+      <div class="row"><button class="btn small" data-act="undo2">↩ Deshacer: aplicar A⁻¹ a la imagen</button></div>
+      <div class="chk"><input type="checkbox" id="inv2chk"><label for="inv2chk">Mostrar A⁻¹(figura) en azul</label></div>
+      <h4>Composición</h4>
+      <div class="chk"><input type="checkbox" id="comp2chk"><label for="comp2chk">Componer con B</label></div>
+      <div class="mwrap"><span class="brk">(</span><div class="mgrid" id="B2grid" style="grid-template-columns:1fr 1fr"></div><span class="brk">)</span></div>
+      <div class="chk"><input type="radio" name="ord2" id="ordBA" value="BA" checked><label for="ordBA">«A y luego B»: matriz BA</label></div>
+      <div class="chk"><input type="radio" name="ord2" id="ordAB" value="AB"><label for="ordAB">«B y luego A»: matriz AB</label></div>
+      <h4>Ver</h4>
+      <div class="chk"><input type="checkbox" id="grid2chk" checked><label for="grid2chk">Malla transformada</label></div>
+      <div class="chk"><input type="checkbox" id="vec2chk" checked><label for="vec2chk">Vector v arrastrable y su imagen</label></div>
+      <div class="chk"><input type="checkbox" id="eig2chk"><label for="eig2chk">Rectas fijas (direcciones propias reales)</label></div>
+    </div>
+    <div class="card">
+      <canvas id="c2" width="560" height="560"></canvas>
+      <div class="legend"><span style="--c:#b8c2bc">cuadrado unitario / figura original</span><span style="--c:#56b07a">imagen del cuadrado</span><span style="--c:#e5842f">imagen de la figura</span><span style="--c:#1b5fd6">Ae₁</span><span style="--c:#d33a35">Ae₂</span><span style="--c:#7b3fc4">v y Av</span></div>
+      <div class="hint">Arrastre la punta del vector morado v para moverlo. La flecha discontinua es su imagen Av.</div>
+    </div>
+    <div class="card readout" id="read2"></div>
+  </div>
+</section>
+
+<!-- ============ R3 ============ -->
+<section class="tab" id="tab-r3">
+  <div id="mis-r3" class="mission-active-box"></div>
+  <div class="lab">
+    <div class="card controls">
+      <h3>Matriz A (3×3)</h3>
+      <div class="mwrap"><span class="brk r3">(</span><div class="mgrid" id="A3grid" style="grid-template-columns:1fr 1fr 1fr"></div><span class="brk r3">)</span></div>
+      <div class="row"><button class="btn small" data-act="id3">Identidad</button><button class="btn small" data-act="tr3">Transponer</button></div>
+      <h4>Catálogo de movimientos del espacio</h4>
+      <div class="row"><select id="cat3">
+        <option value="id">Identidad</option>
+        <option value="rotx">Rotación alrededor del eje x, ángulo θ</option>
+        <option value="roty">Rotación alrededor del eje y, ángulo θ</option>
+        <option value="rotz">Rotación alrededor del eje z, ángulo θ</option>
+        <option value="refl">Reflexión respecto del plano por el origen de normal n</option>
+        <option value="proy">Proyección ortogonal sobre el plano por el origen de normal n</option>
+        <option value="estir">Estiramiento diag(c₁, c₂, c₃)</option>
+        <option value="homo">Homotecia x ↦ k·x</option>
+        <option value="ciz">Cizalla [[1,c,0],[0,1,0],[0,0,1]]</option>
+      </select></div>
+      <div class="row" id="cat3params"></div>
+      <div class="row"><button class="btn primary small" data-act="cat3A">Usar como A</button></div>
+      <h4>Animación</h4>
+      <div class="row"><button class="btn primary small" data-act="anim3">▶ Animar</button><label>t = <span id="t3txt">1</span></label></div>
+      <input type="range" id="t3" min="0" max="1" step="0.01" value="1">
+      <h4>Inversa</h4>
+      <div class="row"><button class="btn small" data-act="undo3">↩ Deshacer: aplicar A⁻¹ a la imagen</button></div>
+      <h4>Vista</h4>
+      <div class="row"><button class="btn small" data-act="v3a">Vista general</button><button class="btn small" data-act="v3b">Desde arriba (plano xy)</button><button class="btn small" data-act="v3c">De frente (plano xz)</button></div>
+      <div class="hint">Arrastre en el lienzo para girar la vista; rueda del ratón para acercar.</div>
+    </div>
+    <div class="card">
+      <canvas id="c3" width="560" height="500"></canvas>
+      <div class="legend"><span style="--c:#b8c2bc">cubo unitario</span><span style="--c:#56b07a">imagen del cubo</span><span style="--c:#1b5fd6">Ae₁</span><span style="--c:#d33a35">Ae₂</span><span style="--c:#7b3fc4">Ae₃</span></div>
+    </div>
+    <div class="card readout" id="read3"></div>
+  </div>
+</section>
+
+<!-- ============ NO CUADRADAS ============ -->
+<section class="tab" id="tab-ns">
+  <div id="mis-ns" class="mission-active-box"></div>
+  <div class="lab">
+    <div class="card controls">
+      <h3>Matrices no cuadradas</h3>
+      <div class="chk"><input type="radio" name="nsmode" id="ns32" value="32" checked><label for="ns32">R² → R³ : matriz 3×2 (incrustar el plano)</label></div>
+      <div class="chk"><input type="radio" name="nsmode" id="ns23" value="23"><label for="ns23">R³ → R² : matriz 2×3 (aplastar el espacio)</label></div>
+      <div id="ns32box">
+        <h4>Matriz 3×2</h4>
+        <div class="mwrap"><span class="brk r3">(</span><div class="mgrid" id="M32grid" style="grid-template-columns:1fr 1fr"></div><span class="brk r3">)</span></div>
+        <div class="row"><button class="btn small" data-act="ns32ej66">Ej. 66: [[1,0],[2,−1],[3,4]]</button><button class="btn small" data-act="ns32inc">Incrustación [[1,0],[0,1],[0,0]]</button></div>
+      </div>
+      <div id="ns23box" style="display:none">
+        <h4>Matriz 2×3</h4>
+        <div class="mwrap"><span class="brk">(</span><div class="mgrid" id="M23grid" style="grid-template-columns:1fr 1fr 1fr"></div><span class="brk">)</span></div>
+        <div class="row"><button class="btn small" data-act="ns23proy">Olvidar z: [[1,0,0],[0,1,0]]</button><button class="btn small" data-act="ns23ej91">Ej. 91: [[1,−1,0],[1,0,1]]</button></div>
+      </div>
+      <div class="hint">Una matriz m×n define T: Rⁿ → Rᵐ. Aquí no hay inversa bilateral: la matriz no es cuadrada.</div>
+    </div>
+    <div class="card">
+      <div class="grid2">
+        <div><div class="tiny" id="nsL-title">Dominio R²</div><canvas id="cns2" width="380" height="380"></canvas></div>
+        <div><div class="tiny" id="nsR-title">Codominio R³ (arrastre para girar)</div><canvas id="cns3" width="380" height="380"></canvas></div>
+      </div>
+    </div>
+    <div class="card readout" id="readns"></div>
+  </div>
+</section>
+
+<!-- ============ TEORÍA ============ -->
+<section class="tab" id="tab-teo">
+  <div class="teo">
+    <h2>Lo que debe quedar claro</h2>
+    <div class="card">
+      <ol style="margin:0 0 0 18px;font-size:.92rem">
+        <li><b>Una matriz es una máquina de mover vectores.</b> Toda transformación lineal T: Rⁿ → Rᵐ es T(x) = Ax con A de tamaño <b>m×n</b> (filas = dimensión de llegada). Las <b>columnas de A son las imágenes de la base canónica</b>: A = (T(e₁) | T(e₂) | … | T(eₙ)). Por eso T(x) = x₁T(e₁) + … + xₙT(eₙ): la imagen de cualquier vector es una combinación lineal de las columnas, y T queda determinada por lo que hace con una base.</li>
+        <li><b>El cuadrado unitario va al paralelogramo de lados Ae₁ y Ae₂</b> (el cubo, al paralelepípedo de aristas Ae₁, Ae₂, Ae₃). Rectas van a rectas (o a un punto), segmentos a segmentos, paralelas a paralelas: la malla cuadriculada se convierte en una malla de paralelogramos.</li>
+        <li><b>El determinante es el factor de área (volumen) con signo.</b> |det A| es el área del paralelogramo imagen del cuadrado unitario; toda región de área V pasa a tener área |det A|·V. El <b>signo</b> dice si se conserva la orientación (det &gt; 0: el recorrido Ae₁ → Ae₂ sigue siendo antihorario; regla de la mano derecha en R³) o si se invierte (det &lt; 0: espejos). det A = 0 exactamente cuando la figura se <b>aplasta</b> (columnas dependientes).</li>
+        <li><b>Componer es multiplicar, y el orden importa.</b> «T seguida de S» es S∘T y su matriz es [S][T] (se lee de derecha a izquierda). En general AB ≠ BA. det(AB) = det A · det B: los factores de área se multiplican.</li>
+        <li><b>La inversa es deshacer el movimiento.</b> A es invertible ⇔ det A ≠ 0 ⇔ sus columnas son independientes ⇔ T es inyectiva (y sobreyectiva, en el caso cuadrado) ⇔ Ax = 0 solo tiene la solución trivial. Entonces [T⁻¹] = A⁻¹, det A⁻¹ = 1/det A y (AB)⁻¹ = B⁻¹A⁻¹ (se deshace primero lo último que se hizo). Para 2×2: A⁻¹ = (1/(ad − bc))·[[d, −b], [−c, a]].</li>
+        <li><b>Lo que se aplasta no se puede deshacer.</b> Una proyección P cumple P² = P y det P = 0: dos vectores distintos tienen la misma imagen (todo el núcleo va al origen), así que no existe P⁻¹ aunque P ≠ O. Lo mismo ocurre con cualquier matriz singular.</li>
+        <li><b>Matrices no cuadradas.</b> Si m &lt; n la transformación aplasta (el núcleo es no trivial: T no es inyectiva). Si m &gt; n incrusta (el rango es un subespacio propio de Rᵐ: T no es sobreyectiva). En ningún caso hay inversa bilateral; a lo sumo inversas laterales, y no son únicas.</li>
+      </ol>
+    </div>
+    <h2>Catálogo del plano</h2>
+    <table>
+      <tr><th>Movimiento</th><th>Matriz estándar</th><th>det</th><th>¿Se deshace?</th><th>Observación</th></tr>
+      <tr><td>Estiramiento (x,y) ↦ (c₁x, c₂y)</td><td>[[c₁, 0], [0, c₂]]</td><td>c₁c₂</td><td>Sí, si c₁c₂ ≠ 0: diag(1/c₁, 1/c₂)</td><td>Invierte orientación si c₁c₂ &lt; 0</td></tr>
+      <tr><td>Rotación antihoraria θ</td><td>[[cos θ, −sen θ], [sen θ, cos θ]]</td><td>1</td><td>Sí: R₋θ = Rθᵀ</td><td>RαRβ = Rα+β; conserva áreas y ángulos</td></tr>
+      <tr><td>Reflexión, recta de ángulo θ (y = ax, a = tg θ)</td><td>[[cos 2θ, sen 2θ], [sen 2θ, −cos 2θ]] = 2P − I</td><td>−1</td><td>Sí: S⁻¹ = S</td><td>Conserva áreas, invierte orientación; dos reflexiones = rotación de ángulo 2·(ángulo entre espejos)</td></tr>
+      <tr><td>Proyección sobre la recta de ángulo θ</td><td>[[cos²θ, cos θ sen θ], [cos θ sen θ, sen²θ]] = (1/(1+a²))[[1, a], [a, a²]]</td><td>0</td><td><b>No</b></td><td>P² = P; el cuadrado se aplasta en un segmento; núcleo = recta perpendicular</td></tr>
+      <tr><td>Cizalla horizontal / vertical</td><td>[[1, c], [0, 1]] / [[1, 0], [c, 1]]</td><td>1</td><td>Sí: cambiar c por −c</td><td>Conserva áreas; deja fijo el eje x (resp. el eje y); [[1,c],[0,1]]ᵏ = [[1,kc],[0,1]]</td></tr>
+      <tr><td>Multiplicar por w = a + bi</td><td>[[a, −b], [b, a]] = |w|·R_arg w</td><td>a² + b²</td><td>Sí, si w ≠ 0</td><td>Giro de arg w y escala |w|</td></tr>
+    </table>
+    <h2>Catálogo del espacio</h2>
+    <table>
+      <tr><th>Movimiento</th><th>Matriz</th><th>det</th><th>Puntos fijos</th></tr>
+      <tr><td>Rotación alrededor del eje z, ángulo θ</td><td>[[cos θ, −sen θ, 0], [sen θ, cos θ, 0], [0, 0, 1]] (análogas para x e y)</td><td>1</td><td>El eje de rotación</td></tr>
+      <tr><td>Reflexión respecto del plano n·x = 0</td><td>S = I − 2nnᵀ/(n·n)</td><td>−1</td><td>Todo el plano; Sn = −n; S² = I</td></tr>
+      <tr><td>Proyección sobre el plano n·x = 0</td><td>P = I − nnᵀ/(n·n)</td><td>0</td><td>Todo el plano; Pn = 0; P² = P; no invertible</td></tr>
+      <tr><td>Estiramiento diag(c₁, c₂, c₃)</td><td>diagonal</td><td>c₁c₂c₃</td><td>El origen (si cᵢ ≠ 1)</td></tr>
+    </table>
+    <div class="warnbox"><b>Errores frecuentes que este laboratorio debe evitar:</b> confundir [S][T] con [T][S]; creer que det(A + B) = det A + det B o que det(cA) = c det A (es cⁿ det A); creer que una proyección «casi» tiene inversa porque P ≠ O; escribir la matriz de T: Rⁿ → Rᵐ como n×m; pensar que una matriz no cuadrada tiene inversa; olvidar que det &lt; 0 significa espejo (orientación invertida), no «área negativa».</div>
+  </div>
+</section>
+</main>
+<footer>Laboratorio de transformaciones lineales · Escuela de Matemáticas, Universidad Industrial de Santander · Álgebra Lineal I, 2026-2. Sin dependencias externas; funciona sin conexión una vez cargado.</footer>
+
+<script>
+(function(){
+'use strict';
+// =============== utilidades numéricas ===============
+function parseNum(s){
+  if(typeof s==='number')return s;
+  s=String(s==null?'':s).trim().replace(/,/g,'.').replace(/−/g,'-').replace(/×/g,'*').replace(/÷/g,'/');
+  if(!s)return NaN;
+  let bad=false;
+  const e=s.replace(/[A-Za-zπ√]+/g,function(id){const k=id.toLowerCase();
+    if(k==='sqrt'||k==='√'||k==='raiz'||k==='raíz')return 'Math.sqrt';
+    if(k==='pi'||k==='π')return 'Math.PI';
+    if(k==='sen'||k==='sin')return 'sinD'; if(k==='cos')return 'cosD'; if(k==='tan'||k==='tg')return 'tanD';
+    bad=true;return 'X';});
+  if(bad||!/^[0-9+\-*/().\sA-Za-z^]*$/.test(e))return NaN;
+  const e2=e.replace(/\^/g,'**');
+  try{const v=Function('sinD','cosD','tanD','"use strict";return ('+e2+')')(
+    function(x){return Math.sin(x*Math.PI/180)},function(x){return Math.cos(x*Math.PI/180)},function(x){return Math.tan(x*Math.PI/180)});
+    return (typeof v==='number'&&isFinite(v))?v:NaN;}catch(err){return NaN;}
+}
+function fmt(x,d){ if(d===undefined)d=3; if(!isFinite(x))return '—'; let v=Math.abs(x)<5e-10?0:x; let s=v.toFixed(d).replace(/\.?0+$/,''); if(s==='-0')s='0'; return s; }
+function fmtNice(x){
+  if(!isFinite(x))return '—'; if(Math.abs(x)<5e-10)return '0';
+  for(let q=1;q<=12;q++){const p=Math.round(x*q); if(Math.abs(x-p/q)<1e-9){return q===1?String(p):p+'/'+q;}}
+  const roots=[['√2',Math.SQRT2],['√3',Math.sqrt(3)],['√5',Math.sqrt(5)]];
+  for(const r of roots){for(let q=1;q<=6;q++){const p=x*q/r[1];const pr=Math.round(p);if(pr!==0&&Math.abs(p-pr)<1e-9){return (pr===1?'':pr===-1?'-':pr)+r[0]+(q===1?'':'/'+q);}}}
+  return fmt(x,3);
+}
+function Imat(n){return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));}
+function mul(A,B){const m=A.length,n=B[0].length,k=B.length;return Array.from({length:m},(_,i)=>Array.from({length:n},(_,j)=>{let s=0;for(let t=0;t<k;t++)s+=A[i][t]*B[t][j];return s;}));}
+function mv(A,v){return A.map(r=>r.reduce((s,x,j)=>s+x*v[j],0));}
+function add(A,B){return A.map((r,i)=>r.map((x,j)=>x+B[i][j]));}
+function scale(A,c){return A.map(r=>r.map(x=>x*c));}
+function tr(A){return A[0].map((_,j)=>A.map(r=>r[j]));}
+function det2(A){return A[0][0]*A[1][1]-A[0][1]*A[1][0];}
+function det3(A){return A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])-A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])+A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]);}
+function inv2(A){const d=det2(A);if(Math.abs(d)<1e-9)return null;return [[A[1][1]/d,-A[0][1]/d],[-A[1][0]/d,A[0][0]/d]];}
+function inv3(A){const d=det3(A);if(Math.abs(d)<1e-9)return null;const C=(i,j)=>{const r=[0,1,2].filter(x=>x!==i),c=[0,1,2].filter(x=>x!==j);const m=A[r[0]][c[0]]*A[r[1]][c[1]]-A[r[0]][c[1]]*A[r[1]][c[0]];return ((i+j)%2?-1:1)*m;};return [0,1,2].map(i=>[0,1,2].map(j=>C(j,i)/d));}
+function rank(M){const A=M.map(r=>r.slice());const m=A.length,n=A[0].length;let r=0;for(let c=0;c<n&&r<m;c++){let p=r;for(let i=r+1;i<m;i++)if(Math.abs(A[i][c])>Math.abs(A[p][c]))p=i;if(Math.abs(A[p][c])<1e-9)continue;[A[p],A[r]]=[A[r],A[p]];for(let i=0;i<m;i++){if(i===r)continue;const f=A[i][c]/A[r][c];for(let j=c;j<n;j++)A[i][j]-=f*A[r][j];}r++;}return r;}
+function cross(u,v){return [u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];}
+function dot(u,v){return u.reduce((s,x,i)=>s+x*v[i],0);}
+function norm(u){return Math.sqrt(dot(u,u));}
+function near(M,T,tol){return M.length===T.length&&M.every((r,i)=>r.length===T[i].length&&r.every((x,j)=>Math.abs(x-T[i][j])<=tol));}
+function nearV(u,t,tol){return u.length===t.length&&u.every((x,i)=>isFinite(x)&&Math.abs(x-t[i])<=tol);}
+function eig2(A){const t=A[0][0]+A[1][1],d=det2(A),disc=t*t/4-d;if(disc<-1e-12)return {real:false,tr:t,det:d};const r=Math.sqrt(Math.max(disc,0));const ls=[t/2+r,t/2-r];const out=[];for(const l of ls){const B=[[A[0][0]-l,A[0][1]],[A[1][0],A[1][1]-l]];const n=Math.hypot(B[0][0],B[0][1],B[1][0],B[1][1]);let v;if(n<1e-9){v=null;}else if(Math.hypot(B[0][0],B[0][1])>1e-9){v=[-B[0][1],B[0][0]];}else{v=[-B[1][1],B[1][0]];}if(v){const nv=Math.hypot(v[0],v[1]);v=[v[0]/nv,v[1]/nv];if(v[0]<-1e-9||(Math.abs(v[0])<1e-9&&v[1]<0))v=[-v[0],-v[1]];}out.push({l,v});}
+  if(Math.abs(ls[0]-ls[1])<1e-9)out.pop();return {real:true,list:out};}
+function matHTML(M,nice){return '<table class="mat">'+M.map(r=>'<tr>'+r.map(x=>'<td>'+(nice===false?fmt(x):fmtNice(x))+'</td>').join('')+'</tr>').join('')+'</table>';}
+function vecHTML(v){return '<span class="vec">('+v.map(x=>fmtNice(x)).join(', ')+')</span>';}
+const degc=Math.PI/180;
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+// =============== estado ===============
+const state2={A:[[1,0],[0,1]],B:[[1,0],[0,1]],compose:false,order:'BA',t:1,v:[1.5,1],fig:'F',showGrid:true,showVec:true,showEig:false,showInv:false,undo:null};
+const state3={A:[[1,0,0],[0,1,0],[0,0,1]],t:1,undo:null,view:{az:-0.75,el:0.42,zoom:1}};
+const stateNS={mode:'32',M32:[[1,0],[2,-1],[3,4]],M23:[[1,0,0],[0,1,0]],view:{az:-0.75,el:0.42,zoom:1}};
+let done=new Set(),mInputs={},studentCode='',activeMission=null;
+function save(){try{localStorage.setItem('labtl.v1',JSON.stringify({code:studentCode,done:[...done],inputs:mInputs}));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem('labtl.v1')||'null');if(d){studentCode=d.code||'';done=new Set(d.done||[]);mInputs=d.inputs||{};}}catch(e){}}
+
+// =============== figuras ===============
+const FIG={F:[[0,0],[0.3,0],[0.3,0.6],[0.8,0.6],[0.8,0.9],[0.3,0.9],[0.3,1.2],[1,1.2],[1,1.5],[0,1.5]],
+  casa:[[0,0],[1,0],[1,1],[0.5,1.5],[0,1]],tri:[[0,0],[1,0],[0,1]],
+  disco:Array.from({length:72},(_,i)=>[Math.cos(i*Math.PI/36),Math.sin(i*Math.PI/36)])};
+const SQ=[[0,0],[1,0],[1,1],[0,1]];
+const CUBE=[];for(let i=0;i<8;i++)CUBE.push([i&1,(i>>1)&1,(i>>2)&1]);
+const CUBE_EDGES=[];for(let i=0;i<8;i++)for(const b of [1,2,4])if(!(i&b))CUBE_EDGES.push([i,i|b]);
+const CUBE_FACES=[];for(let a=0;a<3;a++)for(let val=0;val<2;val++){const o=[0,1,2].filter(x=>x!==a);const quad=[[0,0],[1,0],[1,1],[0,1]].map(q=>{const p=[0,0,0];p[a]=val;p[o[0]]=q[0];p[o[1]]=q[1];return p[0]+2*p[1]+4*p[2];});CUBE_FACES.push(quad);}
+
+// =============== inputs de matriz ===============
+function buildMatrixInputs(id,rows,cols,get,set,withSlider){
+  const g=document.getElementById(id);g.innerHTML='';
+  for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){
+    const w=document.createElement('div');w.style.display='flex';w.style.flexDirection='column';w.style.alignItems='center';
+    const inp=document.createElement('input');inp.type='text';inp.inputMode='decimal';inp.dataset.i=i;inp.dataset.j=j;inp.value=fmtNice(get()[i][j]);
+    inp.addEventListener('input',()=>{const v=parseNum(inp.value);if(isNaN(v)){inp.classList.add('bad');return;}inp.classList.remove('bad');const M=get();M[i][j]=v;set(M,inp);});
+    inp.addEventListener('blur',()=>{const v=parseNum(inp.value);if(!isNaN(v))inp.value=fmtNice(v);});
+    w.appendChild(inp);
+    if(withSlider){const r=document.createElement('input');r.type='range';r.min=-3;r.max=3;r.step=0.05;r.value=get()[i][j];r.addEventListener('input',()=>{const M=get();M[i][j]=+r.value;inp.value=fmtNice(+r.value);inp.classList.remove('bad');set(M,r);});w.appendChild(r);}
+    g.appendChild(w);
+  }
+}
+function refreshMatrixInputs(id,M){const g=document.getElementById(id);g.querySelectorAll('input[type=text]').forEach(inp=>{inp.value=fmtNice(M[inp.dataset.i][inp.dataset.j]);inp.classList.remove('bad');});g.querySelectorAll('input[type=range]').forEach(r=>{const inp=r.previousSibling;r.value=M[inp.dataset.i][inp.dataset.j];});}
+
+// =============== canvas 2D genérico ===============
+function setupCanvas(c){const dpr=window.devicePixelRatio||1;const w=+c.getAttribute('width'),h=+c.getAttribute('height');c.width=w*dpr;c.height=h*dpr;c.style.maxWidth=w+'px';const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {c,ctx,w,h};}
+function arrow2(ctx,a,b,color,width,dash,label){ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.setLineDash([]);const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);const L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L>4){ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(b[0]-9*Math.cos(ang-0.4),b[1]-9*Math.sin(ang-0.4));ctx.lineTo(b[0]-9*Math.cos(ang+0.4),b[1]-9*Math.sin(ang+0.4));ctx.closePath();ctx.fill();}if(label){ctx.font='bold 12px system-ui';ctx.fillText(label,b[0]+6,b[1]-6);}ctx.restore();}
+function poly2(ctx,pts,fill,stroke,width,dash,close){if(!pts.length)return;ctx.save();ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);if(close!==false)ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=width||1.5;ctx.setLineDash(dash||[]);ctx.stroke();}ctx.restore();}
+
+// scene2: {R, gridMat, square, figure, polys:[{pts,fill,stroke,w,dash}], arrows:[{a,b,color,w,dash,label}], lines:[{a,b,color,dash,w}], points:[{p,color,label}]}
+function draw2D(cv,sc){
+  const ctx=cv.ctx,W=cv.w,H=cv.h,R=sc.R;const s=Math.min(W,H)/(2*R);const cx=W/2,cy=H/2;
+  const P=p=>[cx+p[0]*s,cy-p[1]*s];cv.toScreen=P;cv.toWorld=(x,y)=>[(x-cx)/s,(cy-y)/s];
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const K=Math.ceil(R);
+  ctx.save();ctx.strokeStyle='#e9eeeb';ctx.lineWidth=1;for(let k=-K;k<=K;k++){const a=P([k,-R]),b=P([k,R]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();const c=P([-R,k]),d=P([R,k]);ctx.beginPath();ctx.moveTo(c[0],c[1]);ctx.lineTo(d[0],d[1]);ctx.stroke();}ctx.restore();
+  if(sc.gridMat){const M=sc.gridMat;ctx.save();ctx.strokeStyle='rgba(86,176,122,.45)';ctx.lineWidth=1;for(let k=-K-4;k<=K+4;k++){let a=mv(M,[k,-R-6]),b=mv(M,[k,R+6]);a=P(a);b=P(b);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();a=P(mv(M,[-R-6,k]));b=P(mv(M,[R+6,k]));ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}ctx.restore();}
+  // ejes
+  ctx.save();ctx.strokeStyle='#8a958f';ctx.lineWidth=1.3;let a=P([-R,0]),b=P([R,0]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();a=P([0,-R]);b=P([0,R]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.fillStyle='#6b7670';ctx.font='11px system-ui';for(let k=-K;k<=K;k++){if(!k)continue;let q=P([k,0]);ctx.fillText(k,q[0]-3,q[1]+13);q=P([0,k]);ctx.fillText(k,q[0]+4,q[1]+4);}ctx.restore();
+  for(const l of sc.lines||[]){ctx.save();ctx.strokeStyle=l.color;ctx.lineWidth=l.w||1.2;ctx.setLineDash(l.dash||[]);const a=P(l.a),b=P(l.b);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();if(l.label){ctx.fillStyle=l.color;ctx.font='11px system-ui';ctx.fillText(l.label,b[0]+4,b[1]-4);}ctx.restore();}
+  for(const p of sc.polys||[])poly2(ctx,p.pts.map(P),p.fill,p.stroke,p.w,p.dash,p.close);
+  for(const ar of sc.arrows||[])arrow2(ctx,P(ar.a||[0,0]),P(ar.b),ar.color,ar.w||2.2,ar.dash,ar.label);
+  for(const pt of sc.points||[]){const q=P(pt.p);ctx.save();ctx.fillStyle=pt.color;ctx.beginPath();ctx.arc(q[0],q[1],pt.r||4,0,2*Math.PI);ctx.fill();if(pt.label){ctx.font='11px system-ui';ctx.fillText(pt.label,q[0]+6,q[1]-6);}ctx.restore();}
+}
+
+// =============== canvas 3D genérico ===============
+// scene3: {faces:[{verts:[p..],fill,stroke}], lines:[{a,b,color,dash,w}], arrows:[{b,color,label}], points:[{p,color,label}], cube:true/false, view, extra extent points}
+function draw3D(cv,sc){
+  const ctx=cv.ctx,W=cv.w,H=cv.h;const v=sc.view;const ca=Math.cos(v.az),sa=Math.sin(v.az),ce=Math.cos(v.el),se=Math.sin(v.el);
+  const rot=p=>{const x1=p[0]*ca-p[1]*sa,y1=p[0]*sa+p[1]*ca,z1=p[2];return [x1,y1*ce-z1*se,z1*ce+y1*se];};// [X, depth, Z]
+  // extensión para ajustar escala
+  let ext=1.6;const consider=p=>{const r=rot(p);ext=Math.max(ext,Math.abs(r[0])*1.0,Math.abs(r[2])*1.0);};
+  for(const f of sc.faces||[])for(const p of f.verts)consider(p);for(const a of sc.arrows||[])consider(a.b);for(const l of sc.lines||[]){consider(l.a);consider(l.b);}for(const p of sc.points||[])consider(p.p);
+  if(sc.cube)CUBE.forEach(consider);
+  const D=11;const s=Math.min(W,H)/(2*ext*1.12)*v.zoom;const cx=W/2,cy=H/2+8;
+  const P=p=>{const r=rot(p);const f=D/(D+r[1]);return [cx+r[0]*f*s,cy-r[2]*f*s,r[1]];};
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  // piso z=0
+  ctx.save();ctx.strokeStyle='#edf1ef';ctx.lineWidth=1;for(let k=-2;k<=3;k++){let a=P([k,-2,0]),b=P([k,3,0]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();a=P([-2,k,0]);b=P([3,k,0]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}ctx.restore();
+  // ejes
+  const axes=[[[1,0,0],'x'],[[0,1,0],'y'],[[0,0,1],'z']];
+  for(const ax of axes){const L=Math.max(2,ext*0.95);const a=P(ax[0].map(x=>-x*L)),o=P([0,0,0]),b=P(ax[0].map(x=>x*L));ctx.save();ctx.strokeStyle='#8a958f';ctx.lineWidth=1.2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(o[0],o[1]);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.fillStyle='#6b7670';ctx.font='bold 12px system-ui';ctx.fillText(ax[1],b[0]+4,b[1]-2);const u=P(ax[0]);ctx.beginPath();ctx.arc(u[0],u[1],2,0,7);ctx.fill();ctx.restore();}
+  if(sc.cube){ctx.save();ctx.strokeStyle='#b8c2bc';ctx.lineWidth=1.4;for(const e of CUBE_EDGES){const a=P(CUBE[e[0]]),b=P(CUBE[e[1]]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}ctx.restore();}
+  for(const l of sc.lines||[]){const a=P(l.a),b=P(l.b);ctx.save();ctx.strokeStyle=l.color;ctx.lineWidth=l.w||1.5;ctx.setLineDash(l.dash||[]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();if(l.label){ctx.fillStyle=l.color;ctx.font='11px system-ui';ctx.fillText(l.label,b[0]+4,b[1]-4);}ctx.restore();}
+  const faces=(sc.faces||[]).map(f=>{const pv=f.verts.map(P);return {pv,d:pv.reduce((s,q)=>s+q[2],0)/pv.length,f};}).sort((a,b)=>b.d-a.d);
+  for(const F of faces){poly2(ctx,F.pv,F.f.fill,F.f.stroke,1.4);}
+  for(const a of sc.arrows||[]){const o=P(a.a||[0,0,0]),b=P(a.b);arrow2(ctx,o,b,a.color,2.2,a.dash,a.label);}
+  for(const pt of sc.points||[]){const q=P(pt.p);ctx.save();ctx.fillStyle=pt.color;ctx.beginPath();ctx.arc(q[0],q[1],pt.r||4,0,7);ctx.fill();if(pt.label){ctx.font='11px system-ui';ctx.fillText(pt.label,q[0]+6,q[1]-6);}ctx.restore();}
+}
+function attachOrbit(cv,view,onchange){let drag=null;cv.c.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,az:view.az,el:view.el};cv.c.setPointerCapture(e.pointerId);});cv.c.addEventListener('pointermove',e=>{if(!drag)return;const k=cv.c.clientWidth/cv.w;view.az=drag.az+(e.clientX-drag.x)/k*0.01;view.el=Math.max(-1.3,Math.min(1.4,drag.el+(e.clientY-drag.y)/k*0.01));onchange();});cv.c.addEventListener('pointerup',()=>drag=null);cv.c.addEventListener('pointercancel',()=>drag=null);cv.c.addEventListener('wheel',e=>{e.preventDefault();view.zoom=Math.max(0.4,Math.min(3,view.zoom*(e.deltaY<0?1.1:0.9)));onchange();},{passive:false});}
+
+// =============== R² ===============
+const cv2=setupCanvas(document.getElementById('c2'));
+function effMat2(t){ // matriz efectiva según t y composición
+  const I=Imat(2),A=state2.A,B=state2.B;
+  if(!state2.compose){return add(scale(I,1-t),scale(A,t));}
+  const first=state2.order==='BA'?A:B,second=state2.order==='BA'?B:A;
+  if(t<=1)return add(scale(I,1-t),scale(first,t));
+  const u=t-1;return mul(add(scale(I,1-u),scale(second,u)),first);
+}
+function finalMat2(){return state2.compose?(state2.order==='BA'?mul(state2.B,state2.A):mul(state2.A,state2.B)):state2.A;}
+function render2(){
+  const Mfin=finalMat2();
+  let M=effMat2(state2.t);
+  if(state2.undo!==null){const inv=inv2(Mfin);if(inv){M=add(scale(Mfin,1-state2.undo),scale(Imat(2),state2.undo));}}
+  const fig=FIG[state2.fig];
+  const pts=[...SQ,...fig,[1,0],[0,1],state2.v].map(p=>mv(Mfin,p)).concat([state2.v]);
+  let R=3.5;for(const p of pts)R=Math.max(R,Math.abs(p[0])+0.6,Math.abs(p[1])+0.6);R=Math.min(R,14);
+  const sc={R,gridMat:state2.showGrid?M:null,polys:[],arrows:[],lines:[],points:[]};
+  sc.polys.push({pts:SQ,fill:null,stroke:'#b8c2bc',w:1.4,dash:[4,3]});
+  sc.polys.push({pts:fig,fill:'rgba(184,194,188,.25)',stroke:'#b8c2bc',w:1.4});
+  if(state2.undo!==null){sc.polys.push({pts:fig.map(p=>mv(Mfin,p)),fill:null,stroke:'#e5842f',w:1.2,dash:[5,4]});}
+  sc.polys.push({pts:SQ.map(p=>mv(M,p)),fill:'rgba(86,176,122,.35)',stroke:'#2e8b57',w:1.8});
+  sc.polys.push({pts:fig.map(p=>mv(M,p)),fill:'rgba(229,132,47,.55)',stroke:'#c96b1e',w:1.6});
+  if(state2.showInv){const inv=inv2(Mfin);if(inv)sc.polys.push({pts:fig.map(p=>mv(inv,p)),fill:'rgba(27,95,214,.18)',stroke:'#1b5fd6',w:1.4,dash:[6,3]});}
+  if(state2.showEig){const e=eig2(Mfin);if(e.real)for(const it of e.list){if(it.v){sc.lines.push({a:[-R*it.v[0],-R*it.v[1]],b:[R*it.v[0],R*it.v[1]],color:'#7b3fc4',dash:[8,5],w:1.2,label:'λ = '+fmtNice(it.l)});}}}
+  sc.arrows.push({b:[1,0],color:'#b8c2bc',w:1.4},{b:[0,1],color:'#b8c2bc',w:1.4});
+  sc.arrows.push({b:mv(M,[1,0]),color:'#1b5fd6',label:'Ae₁'},{b:mv(M,[0,1]),color:'#d33a35',label:'Ae₂'});
+  if(state2.showVec){sc.arrows.push({b:state2.v,color:'#7b3fc4',label:'v'},{b:mv(M,state2.v),color:'#7b3fc4',dash:[6,4],label:'Av'});}
+  draw2D(cv2,sc);readout2();
+}
+function readout2(){
+  const A=state2.A,Mfin=finalMat2();const d=det2(Mfin);const inv=inv2(Mfin);const e=eig2(Mfin);
+  let h='';
+  if(state2.compose){h+='<h3>Composición: '+(state2.order==='BA'?'«A y luego B» → matriz BA':'«B y luego A» → matriz AB')+'</h3><div class="kv">'+(state2.order==='BA'?matHTML(state2.B)+'·'+matHTML(state2.A):matHTML(state2.A)+'·'+matHTML(state2.B))+' = '+matHTML(Mfin)+'</div><div class="kv">det(producto) = det A · det B = '+fmtNice(det2(state2.A))+' · '+fmtNice(det2(state2.B))+' = <b>'+fmtNice(d)+'</b></div><hr>';}
+  else h+='<h3>Lectura de A</h3>';
+  h+='<div class="kv">Ae₁ = '+vecHTML(mv(Mfin,[1,0]))+' (columna 1) &nbsp; Ae₂ = '+vecHTML(mv(Mfin,[0,1]))+' (columna 2)</div>';
+  h+='<div class="kv">v = '+vecHTML(state2.v)+' ↦ Av = '+vecHTML(mv(Mfin,state2.v))+' = '+fmtNice(state2.v[0])+'·Ae₁ + '+fmtNice(state2.v[1])+'·Ae₂</div>';
+  h+='<div class="kv"><b>det A = '+fmtNice(d)+'</b> &nbsp; → área de la imagen del cuadrado unitario = |det A| = <b>'+fmtNice(Math.abs(d))+'</b></div>';
+  if(Math.abs(d)<1e-9)h+='<div class="kv"><span class="pill bad">det = 0: la figura se aplasta</span> El cuadrado va a '+(rank(Mfin)===1?'un segmento':'un punto')+'; dos vectores distintos tienen la misma imagen.</div>';
+  else if(d>0)h+='<div class="kv"><span class="pill ok">conserva la orientación</span> El recorrido Ae₁ → Ae₂ sigue siendo antihorario.</div>';
+  else h+='<div class="kv"><span class="pill warn">invierte la orientación</span> El recorrido Ae₁ → Ae₂ ahora es horario (efecto espejo).</div>';
+  h+='<div class="kv">¿Invertible? '+(inv?'<span class="pill ok">sí</span> A⁻¹ = (1/det A)·[[d,−b],[−c,a]] = '+matHTML(inv)+'<br>det A⁻¹ = '+fmtNice(det2(inv))+' = 1/det A; &nbsp; A·A⁻¹ = '+matHTML(mul(Mfin,inv)):'<span class="pill bad">no</span> No existe A⁻¹: el movimiento no se puede deshacer.')+'</div>';
+  if(e.real){h+='<div class="kv">Direcciones que no giran (vectores propios): '+e.list.map(it=>it.v?'λ = '+fmtNice(it.l)+' en la dirección '+vecHTML(it.v):'λ = '+fmtNice(it.l)+' (toda dirección)').join('; ')+'.</div>';}
+  else h+='<div class="kv">Sin direcciones propias reales: ninguna recta por el origen queda fija (como en un giro).</div>';
+  h+='<div class="kv tiny">Columnas = imágenes de la base. T(x,y) = x·Ae₁ + y·Ae₂. |det| = factor de área; signo = orientación.</div>';
+  document.getElementById('read2').innerHTML=h;
+}
+// arrastre del vector v
+(function(){let drag=false;const c=cv2.c;const scr=e=>{const r=c.getBoundingClientRect();const k=cv2.w/r.width;return [(e.clientX-r.left)*k,(e.clientY-r.top)*k];};
+c.addEventListener('pointerdown',e=>{if(!state2.showVec)return;const p=scr(e);const tip=cv2.toScreen(state2.v);if(Math.hypot(p[0]-tip[0],p[1]-tip[1])<18){drag=true;c.setPointerCapture(e.pointerId);}});
+c.addEventListener('pointermove',e=>{if(!drag)return;const p=scr(e);let w=cv2.toWorld(p[0],p[1]);if(e.shiftKey)w=w.map(x=>Math.round(x*2)/2);else w=w.map(x=>Math.round(x*20)/20);state2.v=w;render2();});
+c.addEventListener('pointerup',()=>drag=false);c.addEventListener('pointercancel',()=>drag=false);})();
+buildMatrixInputs('A2grid',2,2,()=>state2.A,(M)=>{state2.A=M;state2.undo=null;render2();},true);
+buildMatrixInputs('B2grid',2,2,()=>state2.B,(M)=>{state2.B=M;state2.undo=null;render2();},true);
+function setA2(M){state2.A=M.map(r=>r.slice());state2.undo=null;refreshMatrixInputs('A2grid',state2.A);render2();}
+function setB2(M){state2.B=M.map(r=>r.slice());state2.undo=null;refreshMatrixInputs('B2grid',state2.B);render2();}
+// catálogo 2D
+const CAT2={id:{p:[],f:()=>[[1,0],[0,1]]},
+  estir:{p:[['c1','c₁',2],['c2','c₂',0.5]],f:v=>[[v.c1,0],[0,v.c2]]},
+  rot:{p:[['th','θ (grados)',60]],f:v=>{const c=Math.cos(v.th*degc),s=Math.sin(v.th*degc);return [[c,-s],[s,c]];}},
+  refl:{p:[['th','θ (grados)',45]],f:v=>{const c=Math.cos(2*v.th*degc),s=Math.sin(2*v.th*degc);return [[c,s],[s,-c]];}},
+  proy:{p:[['th','θ (grados)',45]],f:v=>{const c=Math.cos(v.th*degc),s=Math.sin(v.th*degc);return [[c*c,c*s],[c*s,s*s]];}},
+  cizh:{p:[['c','c',1]],f:v=>[[1,v.c],[0,1]]},cizv:{p:[['c','c',1]],f:v=>[[1,0],[v.c,1]]},
+  homo:{p:[['k','k',2]],f:v=>[[v.k,0],[0,v.k]]},
+  comp:{p:[['a','a',1],['b','b',1]],f:v=>[[v.a,-v.b],[v.b,v.a]]}};
+function catParams(sel,box,CAT){const k=sel.value;const b=document.getElementById(box);b.innerHTML='';for(const p of CAT[k].p){const l=document.createElement('label');l.textContent=p[1]+' = ';const i=document.createElement('input');i.className='par';i.dataset.key=p[0];i.value=p[2];l.appendChild(i);b.appendChild(l);}
+  if(k==='refl'||k==='proy'){const h=document.createElement('div');h.className='hint';h.innerHTML='Para la recta y = ax, θ = arctan(a). Escriba θ en grados (p. ej. 45, 135, −45) o escriba aquí la pendiente a y θ se calcula solo: ';const i=document.createElement('input');i.className='par';i.placeholder='a';i.style.width='60px';i.addEventListener('input',()=>{const a=parseNum(i.value);if(!isNaN(a)){const th=Math.atan(a)/degc;const t=b.querySelector('input[data-key=th]');if(t)t.value=fmt(th,3);}});h.appendChild(i);b.appendChild(h);}}
+function catMatrix(sel,box,CAT){const k=sel.value;const v={};let ok=true;document.getElementById(box).querySelectorAll('input.par[data-key]').forEach(i=>{const x=parseNum(i.value);if(isNaN(x)){ok=false;i.classList.add('bad');}else{i.classList.remove('bad');v[i.dataset.key]=x;}});if(!ok)return null;return CAT[k].f(v);}
+const cat2=document.getElementById('cat2');cat2.addEventListener('change',()=>catParams(cat2,'cat2params',CAT2));catParams(cat2,'cat2params',CAT2);
+document.getElementById('fig2').addEventListener('change',e=>{state2.fig=e.target.value;render2();});
+document.getElementById('t2').addEventListener('input',e=>{state2.t=+e.target.value;state2.undo=null;document.getElementById('t2txt').textContent=fmt(state2.t,2);render2();});
+document.getElementById('inv2chk').addEventListener('change',e=>{state2.showInv=e.target.checked;render2();});
+document.getElementById('grid2chk').addEventListener('change',e=>{state2.showGrid=e.target.checked;render2();});
+document.getElementById('vec2chk').addEventListener('change',e=>{state2.showVec=e.target.checked;render2();});
+document.getElementById('eig2chk').addEventListener('change',e=>{state2.showEig=e.target.checked;render2();});
+document.getElementById('comp2chk').addEventListener('change',e=>{state2.compose=e.target.checked;state2.undo=null;const tt=document.getElementById('t2');tt.max=state2.compose?2:1;tt.value=tt.max;state2.t=+tt.max;document.getElementById('t2txt').textContent=fmt(state2.t,2);render2();});
+document.querySelectorAll('input[name=ord2]').forEach(r=>r.addEventListener('change',e=>{if(e.target.checked){state2.order=e.target.value;state2.undo=null;render2();}}));
+let anim2req=null;
+function animate2(){if(anim2req)cancelAnimationFrame(anim2req);const tmax=state2.compose?2:1;const t0=performance.now();const slider=document.getElementById('t2');state2.undo=null;const step=now=>{const u=Math.min(tmax,(now-t0)/1800);state2.t=u;slider.value=u;document.getElementById('t2txt').textContent=fmt(u,2);render2();if(u<tmax)anim2req=requestAnimationFrame(step);else anim2req=null;};anim2req=requestAnimationFrame(step);}
+function undo2(){const Mfin=finalMat2();if(!inv2(Mfin)){state2.undo=null;render2();alert('No existe A⁻¹: det A = 0. La figura se aplastó y dos vectores distintos tienen la misma imagen, así que el movimiento no se puede deshacer.');return;}if(anim2req)cancelAnimationFrame(anim2req);state2.t=state2.compose?2:1;document.getElementById('t2').value=state2.t;document.getElementById('t2txt').textContent=fmt(state2.t,2);const t0=performance.now();const step=now=>{const u=Math.min(1,(now-t0)/1800);state2.undo=u;render2();if(u<1)anim2req=requestAnimationFrame(step);else{anim2req=null;}};anim2req=requestAnimationFrame(step);}
+
+// =============== R³ ===============
+const cv3=setupCanvas(document.getElementById('c3'));
+function effMat3(t){const I=Imat(3);return add(scale(I,1-t),scale(state3.A,t));}
+function render3(){
+  const A=state3.A;let M=effMat3(state3.t);
+  if(state3.undo!==null){const inv=inv3(A);if(inv)M=add(scale(A,1-state3.undo),scale(Imat(3),state3.undo));}
+  const verts=CUBE.map(p=>mv(M,p));
+  const sc={view:state3.view,cube:true,faces:CUBE_FACES.map(f=>({verts:f.map(i=>verts[i]),fill:'rgba(86,176,122,.28)',stroke:'#2e8b57'})),arrows:[{b:mv(M,[1,0,0]),color:'#1b5fd6',label:'Ae₁'},{b:mv(M,[0,1,0]),color:'#d33a35',label:'Ae₂'},{b:mv(M,[0,0,1]),color:'#7b3fc4',label:'Ae₃'}],lines:[],points:[]};
+  if(state3.undo!==null){const vv=CUBE.map(p=>mv(A,p));for(const e of CUBE_EDGES)sc.lines.push({a:vv[e[0]],b:vv[e[1]],color:'#e5842f',dash:[5,4],w:1.2});}
+  draw3D(cv3,sc);readout3();
+}
+function readout3(){
+  const A=state3.A,d=det3(A),inv=inv3(A),rk=rank(A);
+  let h='<h3>Lectura de A</h3>';
+  h+='<div class="kv">Ae₁ = '+vecHTML(mv(A,[1,0,0]))+', Ae₂ = '+vecHTML(mv(A,[0,1,0]))+', Ae₃ = '+vecHTML(mv(A,[0,0,1]))+' (las columnas)</div>';
+  h+='<div class="kv"><b>det A = '+fmtNice(d)+'</b> → volumen de la imagen del cubo unitario = |det A| = <b>'+fmtNice(Math.abs(d))+'</b></div>';
+  if(Math.abs(d)<1e-9)h+='<div class="kv"><span class="pill bad">det = 0: el cubo se aplasta</span> rango '+rk+': la imagen es '+(rk===2?'un paralelogramo plano (volumen 0)':rk===1?'un segmento':'un punto')+'.</div>';
+  else if(d>0)h+='<div class="kv"><span class="pill ok">conserva la orientación</span> (Ae₁, Ae₂, Ae₃) cumple la regla de la mano derecha.</div>';
+  else h+='<div class="kv"><span class="pill warn">invierte la orientación</span> (Ae₁, Ae₂, Ae₃) es una terna «de mano izquierda»: efecto espejo.</div>';
+  h+='<div class="kv">¿Invertible? '+(inv?'<span class="pill ok">sí</span> A⁻¹ = '+matHTML(inv)+' &nbsp; det A⁻¹ = '+fmtNice(det3(inv)):'<span class="pill bad">no</span> No existe A⁻¹.')+'</div>';
+  const fixed=CUBE.filter(p=>norm(mv(A,p).map((x,i)=>x-p[i]))<1e-6);
+  h+='<div class="kv">Vértices del cubo que quedan fijos: '+(fixed.length?fixed.map(vecHTML).join(' '):'ninguno')+'</div>';
+  h+='<details><summary>Imágenes de los ocho vértices</summary><div class="kv">'+CUBE.map(p=>vecHTML(p)+' ↦ '+vecHTML(mv(A,p))).join('<br>')+'</div></details>';
+  document.getElementById('read3').innerHTML=h;
+}
+buildMatrixInputs('A3grid',3,3,()=>state3.A,(M)=>{state3.A=M;state3.undo=null;render3();},false);
+function setA3(M){state3.A=M.map(r=>r.slice());state3.undo=null;refreshMatrixInputs('A3grid',state3.A);render3();}
+const CAT3={id:{p:[],f:()=>Imat(3)},
+  rotx:{p:[['th','θ (grados)',90]],f:v=>{const c=Math.cos(v.th*degc),s=Math.sin(v.th*degc);return [[1,0,0],[0,c,-s],[0,s,c]];}},
+  roty:{p:[['th','θ (grados)',90]],f:v=>{const c=Math.cos(v.th*degc),s=Math.sin(v.th*degc);return [[c,0,s],[0,1,0],[-s,0,c]];}},
+  rotz:{p:[['th','θ (grados)',90]],f:v=>{const c=Math.cos(v.th*degc),s=Math.sin(v.th*degc);return [[c,-s,0],[s,c,0],[0,0,1]];}},
+  refl:{p:[['n1','n₁',1],['n2','n₂',1],['n3','n₃',1]],f:v=>{const n=[v.n1,v.n2,v.n3],nn=dot(n,n);if(nn<1e-12)return Imat(3);return Imat(3).map((r,i)=>r.map((x,j)=>x-2*n[i]*n[j]/nn));}},
+  proy:{p:[['n1','n₁',0],['n2','n₂',0],['n3','n₃',1]],f:v=>{const n=[v.n1,v.n2,v.n3],nn=dot(n,n);if(nn<1e-12)return Imat(3);return Imat(3).map((r,i)=>r.map((x,j)=>x-n[i]*n[j]/nn));}},
+  estir:{p:[['c1','c₁',2],['c2','c₂',1],['c3','c₃',0.5]],f:v=>[[v.c1,0,0],[0,v.c2,0],[0,0,v.c3]]},
+  homo:{p:[['k','k',2]],f:v=>[[v.k,0,0],[0,v.k,0],[0,0,v.k]]},
+  ciz:{p:[['c','c',1]],f:v=>[[1,v.c,0],[0,1,0],[0,0,1]]}};
+const cat3=document.getElementById('cat3');cat3.addEventListener('change',()=>catParams(cat3,'cat3params',CAT3));catParams(cat3,'cat3params',CAT3);
+document.getElementById('t3').addEventListener('input',e=>{state3.t=+e.target.value;state3.undo=null;document.getElementById('t3txt').textContent=fmt(state3.t,2);render3();});
+let anim3req=null;
+function animate3(){if(anim3req)cancelAnimationFrame(anim3req);const t0=performance.now();state3.undo=null;const step=now=>{const u=Math.min(1,(now-t0)/1800);state3.t=u;document.getElementById('t3').value=u;document.getElementById('t3txt').textContent=fmt(u,2);render3();if(u<1)anim3req=requestAnimationFrame(step);else anim3req=null;};anim3req=requestAnimationFrame(step);}
+function undo3(){if(!inv3(state3.A)){alert('No existe A⁻¹: det A = 0. El cubo se aplastó; el movimiento no se puede deshacer.');return;}if(anim3req)cancelAnimationFrame(anim3req);state3.t=1;document.getElementById('t3').value=1;const t0=performance.now();const step=now=>{const u=Math.min(1,(now-t0)/1800);state3.undo=u;render3();if(u<1)anim3req=requestAnimationFrame(step);else anim3req=null;};anim3req=requestAnimationFrame(step);}
+attachOrbit(cv3,state3.view,render3);
+
+// =============== no cuadradas ===============
+const cvns2=setupCanvas(document.getElementById('cns2')),cvns3=setupCanvas(document.getElementById('cns3'));
+function hull(pts){const P=pts.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);const lo=[];for(const p of P){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=1e-12)lo.pop();lo.push(p);}const up=[];for(let i=P.length-1;i>=0;i--){const p=P[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=1e-12)up.pop();up.push(p);}up.pop();lo.pop();return lo.concat(up);}
+function renderNS(){
+  const m=stateNS.mode;
+  if(m==='32'){
+    const M=stateNS.M32,c1=mv(M,[1,0]),c2=mv(M,[0,1]);const fig=FIG[state2.fig];
+    document.getElementById('nsL-title').textContent='Dominio R²: cuadrado unitario y figura';document.getElementById('nsR-title').textContent='Codominio R³: imagen (arrastre para girar)';
+    draw2D(cvns2,{R:2.5,polys:[{pts:SQ,fill:'rgba(86,176,122,.25)',stroke:'#2e8b57',w:1.6},{pts:fig,fill:'rgba(229,132,47,.4)',stroke:'#c96b1e',w:1.4}],arrows:[{b:[1,0],color:'#1b5fd6',label:'e₁'},{b:[0,1],color:'#d33a35',label:'e₂'}]});
+    const n=cross(c1,c2);const sc={view:stateNS.view,cube:false,faces:[],arrows:[{b:c1,color:'#1b5fd6',label:'Ae₁'},{b:c2,color:'#d33a35',label:'Ae₂'}],lines:[],points:[]};
+    if(norm(n)>1e-9){const L=2.2;sc.faces.push({verts:[[-L,-L],[L,-L],[L,L],[-L,L]].map(q=>[0,1,2].map(i=>q[0]*c1[i]+q[1]*c2[i])),fill:'rgba(86,176,122,.10)',stroke:'rgba(46,139,87,.35)'});}
+    sc.faces.push({verts:SQ.map(p=>mv(M,p)),fill:'rgba(86,176,122,.35)',stroke:'#2e8b57'});
+    sc.faces.push({verts:fig.map(p=>mv(M,p)),fill:'rgba(229,132,47,.5)',stroke:'#c96b1e'});
+    draw3D(cvns3,sc);
+    let h='<h3>T: R² → R³, T(x) = Mx con M de 3×2</h3>';
+    h+='<div class="kv">T(e₁) = '+vecHTML(c1)+', T(e₂) = '+vecHTML(c2)+' (las columnas). T(x,y) = x·T(e₁) + y·T(e₂).</div>';
+    if(norm(n)>1e-9){h+='<div class="kv">Las columnas son independientes: <span class="pill ok">T es inyectiva</span> (núcleo = {0}). El <b>rango</b> es el plano por el origen generado por las columnas, de normal n = T(e₁)×T(e₂) = '+vecHTML(n)+': '+fmtNice(n[0])+'x + ('+fmtNice(n[1])+')y + ('+fmtNice(n[2])+')z = 0.</div>';}
+    else h+='<div class="kv">Las columnas son dependientes: <span class="pill bad">T no es inyectiva</span>; el rango es '+(rank(M)===1?'una recta por el origen':'el origen')+'.</div>';
+    h+='<div class="kv"><span class="pill bad">no hay inversa</span> T nunca es sobreyectiva (R³ es «más grande» que la imagen): la matriz 3×2 no tiene inversa bilateral. Como mucho una inversa izquierda Y con YM = I₂, y no es única.</div>';
+    h+='<div class="kv tiny">La figura naranja del plano aparece «incrustada» en R³ dentro del plano del rango.</div>';
+    document.getElementById('readns').innerHTML=h;
+  }else{
+    const M=stateNS.M23;const r1=M[0],r2=M[1];const k=cross(r1,r2);const rk=rank(M);
+    document.getElementById('nsL-title').textContent='Codominio R²: imagen del cubo';document.getElementById('nsR-title').textContent='Dominio R³: cubo y núcleo (arrastre para girar)';
+    const img=CUBE.map(p=>mv(M,p));const H=hull(img);
+    let R=2.5;for(const p of img)R=Math.max(R,Math.abs(p[0])+0.5,Math.abs(p[1])+0.5);
+    draw2D(cvns2,{R,polys:[{pts:H,fill:'rgba(86,176,122,.3)',stroke:'#2e8b57',w:1.6}],arrows:[{b:mv(M,[1,0,0]),color:'#1b5fd6',label:'Ae₁'},{b:mv(M,[0,1,0]),color:'#d33a35',label:'Ae₂'},{b:mv(M,[0,0,1]),color:'#7b3fc4',label:'Ae₃'}],points:img.map(p=>({p,color:'#2e8b57',r:3}))});
+    const sc={view:stateNS.view,cube:true,faces:[],arrows:[],lines:[],points:[]};
+    if(rk===2&&norm(k)>1e-9){const u=k.map(x=>x/norm(k));sc.lines.push({a:u.map(x=>-2.5*x),b:u.map(x=>2.5*x),color:'#c0392b',dash:[7,4],w:2,label:'núcleo'});
+      const w0=[1,2,3];const w1=w0.map((x,i)=>x+u[i]);sc.points.push({p:w0,color:'#7b3fc4',label:'w'},{p:w1,color:'#7b3fc4',label:'w + k'});sc.lines.push({a:w0,b:w1,color:'#7b3fc4',dash:[3,3],w:1.2});}
+    draw3D(cvns3,sc);
+    let h='<h3>T: R³ → R², T(x) = Mx con M de 2×3</h3>';
+    h+='<div class="kv">T(e₁) = '+vecHTML(mv(M,[1,0,0]))+', T(e₂) = '+vecHTML(mv(M,[0,1,0]))+', T(e₃) = '+vecHTML(mv(M,[0,0,1]))+'.</div>';
+    if(rk===2){const u=k;h+='<div class="kv"><span class="pill bad">T no es inyectiva</span> El <b>núcleo</b> es la recta por el origen de dirección k = '+vecHTML(u)+' (línea roja): todos esos vectores van a (0,0). Por ejemplo w = (1,2,3) y w + k tienen la misma imagen '+vecHTML(mv(M,[1,2,3]))+'. T sí es sobreyectiva (rango 2 = todo R²).</div>';}
+    else if(rk===1)h+='<div class="kv"><span class="pill bad">rango 1</span> El núcleo es un plano por el origen y la imagen es una recta de R².</div>';
+    else h+='<div class="kv">Matriz nula: todo va al origen.</div>';
+    h+='<div class="kv"><span class="pill bad">no hay inversa</span> Una matriz 2×3 aplasta R³ sobre R²; como dos vectores distintos tienen la misma imagen, no se puede deshacer. A lo sumo una inversa derecha X con MX = I₂, y no es única.</div>';
+    document.getElementById('readns').innerHTML=h;
+  }
+}
+buildMatrixInputs('M32grid',3,2,()=>stateNS.M32,(M)=>{stateNS.M32=M;renderNS();},false);
+buildMatrixInputs('M23grid',2,3,()=>stateNS.M23,(M)=>{stateNS.M23=M;renderNS();},false);
+document.querySelectorAll('input[name=nsmode]').forEach(r=>r.addEventListener('change',e=>{if(!e.target.checked)return;stateNS.mode=e.target.value;document.getElementById('ns32box').style.display=stateNS.mode==='32'?'':'none';document.getElementById('ns23box').style.display=stateNS.mode==='23'?'':'none';renderNS();}));
+attachOrbit(cvns3,stateNS.view,renderNS);
+
+// =============== acciones de botones ===============
+document.body.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a==='id2')setA2(Imat(2));else if(a==='tr2')setA2(tr(state2.A));else if(a==='neg2')setA2(scale(state2.A,-1));
+  else if(a==='cat2A'||a==='cat2B'){const M=catMatrix(cat2,'cat2params',CAT2);if(!M){alert('Revise los parámetros del catálogo.');return;}if(a==='cat2A')setA2(M);else{setB2(M);}}
+  else if(a==='anim2')animate2();else if(a==='undo2')undo2();
+  else if(a==='id3')setA3(Imat(3));else if(a==='tr3')setA3(tr(state3.A));
+  else if(a==='cat3A'){const M=catMatrix(cat3,'cat3params',CAT3);if(!M){alert('Revise los parámetros del catálogo.');return;}setA3(M);}
+  else if(a==='anim3')animate3();else if(a==='undo3')undo3();
+  else if(a==='v3a'){Object.assign(state3.view,{az:-0.75,el:0.42,zoom:1});render3();}
+  else if(a==='v3b'){Object.assign(state3.view,{az:0,el:1.4,zoom:1});render3();}
+  else if(a==='v3c'){Object.assign(state3.view,{az:0,el:0,zoom:1});render3();}
+  else if(a==='ns32ej66'){stateNS.M32=[[1,0],[2,-1],[3,4]];refreshMatrixInputs('M32grid',stateNS.M32);renderNS();}
+  else if(a==='ns32inc'){stateNS.M32=[[1,0],[0,1],[0,0]];refreshMatrixInputs('M32grid',stateNS.M32);renderNS();}
+  else if(a==='ns23proy'){stateNS.M23=[[1,0,0],[0,1,0]];refreshMatrixInputs('M23grid',stateNS.M23);renderNS();}
+  else if(a==='ns23ej91'){stateNS.M23=[[1,-1,0],[1,0,1]];refreshMatrixInputs('M23grid',stateNS.M23);renderNS();}
+  else if(a==='goto'){showTab(b.dataset.tab);activeMission=+b.dataset.m;renderMissions();}
+  else if(a==='check'){checkMission(+b.dataset.m);}
+});
+
+// =============== pestañas ===============
+function showTab(k){document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===k));document.querySelectorAll('section.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+k));if(k==='r2')render2();if(k==='r3')render3();if(k==='ns')renderNS();window.scrollTo({top:0});}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)showTab(b.dataset.tab);});
+
+// =============== misiones ===============
+const R60=[[0.5,-Math.sqrt(3)/2],[Math.sqrt(3)/2,0.5]];
+const MISSIONS=[
+ {id:1,tab:'r2',title:'La matriz guarda las imágenes de la base',ref:'Ej. 66, 68 y 69',
+  steps:['En la pestaña <b>R²</b> escriba la matriz estándar de T(v₁,v₂) = (v₁ + 2v₂, 3v₁ − v₂).','Observe las flechas Ae₁ (azul) y Ae₂ (roja) y compárelas con las columnas de la matriz.','Arrastre el vector v hasta (1,1) y lea Av en el panel de lectura. Compruebe que Av = Ae₁ + Ae₂.'],
+  inputs:[{k:'Av',t:'vec2',l:'Av para v = (1,1)'}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[1,2],[3,-1]],1e-6))p.push('La matriz A configurada en R² no es la matriz estándar de T.');if(!nearV(i.Av,[3,2],0.02))p.push('El valor de Av no es correcto.');return p;},
+  note:'Las columnas de [T] son T(e₁) y T(e₂). Como T(x,y) = x·T(e₁) + y·T(e₂), la imagen de cualquier vector es una combinación lineal de las columnas: la matriz guarda toda la información de T en lo que hace con una base.'},
+ {id:2,tab:'r2',title:'Un giro de 60°',ref:'Ej. 71, 100',
+  steps:['Configure A = R₆₀ (catálogo «Rotación», θ = 60; o a mano con cos 60° = 1/2 y sen 60° = √3/2).','Pulse <b>▶ Animar</b> y observe cómo gira el cuadrado y la figura. Active «Rectas fijas»: ¿alguna recta por el origen queda fija?','Lea det A y el área de la imagen del cuadrado. Pulse <b>↩ Deshacer</b>: ¿qué rotación deshace a R₆₀?'],
+  inputs:[{k:'det',t:'num',l:'det A'},{k:'area',t:'choice',l:'¿Cambió el área del cuadrado?',o:['No: toda rotación conserva el área','Sí: el cuadrado se agranda','Sí: el cuadrado se reduce']},{k:'inv',t:'choice',l:'La inversa de R₆₀ es',o:['R₋₆₀ = R₆₀ᵀ (girar 60° en sentido horario)','la reflexión respecto de la recta de 60°','R₆₀ otra vez (girar 60° más)','no existe: una rotación no se puede deshacer']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,R60,0.01))p.push('La matriz A no es R₆₀.');if(!(Math.abs(i.det-1)<0.01))p.push('El determinante no es correcto.');if(i.area!==0)p.push('Revise lo que ocurre con el área.');if(i.inv!==0)p.push('Revise cuál es la inversa de una rotación.');return p;},
+  note:'det Rθ = cos²θ + sen²θ = 1: las rotaciones conservan áreas y orientación. Rθ⁻¹ = R₋θ = Rθᵀ. Un giro (0° < θ < 180°) no deja fija ninguna recta por el origen: no tiene vectores propios reales.'},
+ {id:3,tab:'r2',title:'Proyectar es aplastar',ref:'Ej. 72, 100, 101 y 201',
+  steps:['Configure P = proyección ortogonal sobre la recta y = 2x (catálogo «Proyección» con pendiente a = 2, o a mano: (1/5)[[1,2],[2,4]]).','Observe en qué se convierte el cuadrado unitario y active «Malla transformada».','Pulse <b>↩ Deshacer</b> y lea el mensaje. Arrastre v a (−2,1) y luego a (1,2): lea Pv en cada caso.','Componga P con B = P (marque «Componer con B» y use el catálogo «Usar como B»): compare P·P con P.'],
+  inputs:[{k:'Pv',t:'vec2',l:'Pv para v = (−2,1)'},{k:'why',t:'choice',l:'¿Por qué no se puede deshacer P?',o:['Porque dos vectores distintos tienen la misma imagen (det P = 0)','Porque P tiene entradas fraccionarias','Porque P no es simétrica','Sí se puede: P⁻¹ = P']},{k:'pp',t:'choice',l:'P·P es igual a',o:['P','I','O (matriz nula)','2P']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[0.2,0.4],[0.4,0.8]],0.01))p.push('La matriz A no es la proyección sobre y = 2x.');if(!nearV(i.Pv,[0,0],0.02))p.push('El valor de Pv no es correcto.');if(i.why!==0)p.push('Revise la razón por la que P no es invertible.');if(i.pp!==0)p.push('Revise el valor de P·P.');return p;},
+  note:'P² = P (proyectar dos veces es proyectar una) y det P = 0: toda la recta perpendicular, de dirección (−2,1), va al origen. P no es inyectiva y por tanto no tiene inversa, aunque P ≠ O.'},
+ {id:4,tab:'r2',title:'Un espejo',ref:'Ej. 73, 74, 100 y 321',
+  steps:['Configure S = reflexión respecto de la recta y = −x (catálogo «Reflexión», θ = 135° o pendiente a = −1).','Mire el recorrido Ae₁ → Ae₂: ¿es antihorario u horario? Compare con el pill de orientación del panel.','Marque «Componer con B», ponga B = S («Usar como B») y lea el producto. Active «Rectas fijas» y observe las dos direcciones propias.'],
+  inputs:[{k:'det',t:'num',l:'det S'},{k:'ss',t:'choice',l:'S·S es igual a',o:['I','S','−I','O']},{k:'ori',t:'choice',l:'Una reflexión',o:['conserva el área e invierte la orientación','conserva el área y la orientación','duplica el área','aplasta la figura']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[0,-1],[-1,0]],0.01))p.push('La matriz A no es la reflexión respecto de y = −x.');if(!(Math.abs(i.det+1)<0.01))p.push('El determinante no es correcto.');if(i.ss!==0)p.push('Revise el valor de S·S.');if(i.ori!==0)p.push('Revise qué hace una reflexión con área y orientación.');return p;},
+  note:'Toda reflexión tiene det = −1: conserva áreas pero invierte la orientación. S² = I, luego S⁻¹ = S. Sus direcciones propias son la recta espejo (λ = 1) y su perpendicular (λ = −1).'},
+ {id:5,tab:'r2',title:'Cizalla',ref:'Ej. 75, 105 y 365',
+  steps:['Configure la cizalla vertical con c = 2: [[1,0],[2,1]].','Pulse <b>▶ Animar</b>. Arrastre v a varios puntos del eje y (x = 0): ¿qué le pasa a Av? Luego lleve v a (1,1).','Lea det A y la lectura de rectas fijas (active «Rectas fijas»).'],
+  inputs:[{k:'Av',t:'vec2',l:'Av para v = (1,1)'},{k:'fix',t:'choice',l:'Los puntos que quedan fijos son',o:['los del eje y (x = 0)','los del eje x (y = 0)','los de la recta y = x','solo el origen']},{k:'det',t:'num',l:'det A'}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[1,0],[2,1]],0.01))p.push('La matriz A no es la cizalla vertical con c = 2.');if(!nearV(i.Av,[1,3],0.02))p.push('El valor de Av no es correcto.');if(i.fix!==0)p.push('Revise qué puntos quedan fijos.');if(!(Math.abs(i.det-1)<0.01))p.push('El determinante no es correcto.');return p;},
+  note:'Las cizallas conservan el área (det = 1) y dejan fija una recta completa (el eje y para la vertical). Tienen un único valor propio, λ = 1, con una sola dirección propia. [[1,0],[c,1]]ᵏ = [[1,0],[kc,1]].'},
+ {id:6,tab:'r2',title:'El orden importa',ref:'Ej. 76 y 79',
+  steps:['Ponga A = R₆₀ y B = estiramiento (c₁,c₂) = (2,3) (catálogo «Estiramiento», «Usar como B»).','Marque «Componer con B» con el orden «A y luego B» (matriz BA). Pulse <b>▶ Animar</b>: verá las dos etapas.','Lea la imagen de (1,0) (arrastre v a (1,0)). Cambie el orden a «B y luego A» y repita. Compare las dos matrices producto.'],
+  inputs:[{k:'ER',t:'vec2',l:'Imagen de (1,0) bajo «R₆₀ seguida de E»'},{k:'RE',t:'vec2',l:'Imagen de (1,0) bajo «E seguida de R₆₀»'},{k:'mat',t:'choice',l:'La matriz de «R seguida de E» es',o:['[E][R]','[R][E]','[E] + [R]','[E][R] = [R][E], da lo mismo']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,R60,0.01)||!near(c.B2,[[2,0],[0,3]],0.01))p.push('Deje A = R₆₀ y B = diag(2,3) configuradas.');if(!c.compose)p.push('Active «Componer con B».');if(!nearV(i.ER,[1,3*Math.sqrt(3)/2],0.02))p.push('La imagen bajo «R seguida de E» no es correcta.');if(!nearV(i.RE,[1,Math.sqrt(3)],0.02))p.push('La imagen bajo «E seguida de R» no es correcta.');if(i.mat!==0)p.push('Revise la matriz de una composición.');return p;},
+  note:'«T seguida de S» es S∘T y su matriz es [S][T]: se lee de derecha a izquierda. En general AB ≠ BA; solo conmutan casos especiales (por ejemplo, las homotecias kI con cualquier matriz, o dos rotaciones entre sí).'},
+ {id:7,tab:'r2',title:'Dos espejos hacen un giro',ref:'Ej. 77 y 106 e)–f)',
+  steps:['Ponga A = reflexión respecto del eje x (catálogo «Reflexión», θ = 0) y B = reflexión respecto de y = x (θ = 45, «Usar como B»).','Componga «A y luego B» (BA). Pulse <b>▶ Animar</b> y reconozca el producto en el catálogo.','Cambie el orden («B y luego A») y observe el sentido del giro.'],
+  inputs:[{k:'ang',t:'num',l:'Ángulo de giro de «A y luego B» (grados, antihorario positivo)'},{k:'rule',t:'choice',l:'Regla general: dos reflexiones dan una rotación de ángulo',o:['el doble del ángulo entre los espejos','el ángulo entre los espejos','la suma de los ángulos de los dos espejos','90°, siempre']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[1,0],[0,-1]],0.01)||!near(c.B2,[[0,1],[1,0]],0.01))p.push('Deje A = reflexión respecto del eje x y B = reflexión respecto de y = x.');if(!c.compose)p.push('Active «Componer con B».');if(!(Math.abs(i.ang-90)<0.5))p.push('El ángulo de giro no es correcto (mire la matriz BA).');if(i.rule!==0)p.push('Revise la regla general.');return p;},
+  note:'La composición de dos reflexiones es una rotación de ángulo 2·(ángulo entre los espejos); al cambiar el orden cambia el sentido del giro. Por eso la composición de dos reflexiones no es una reflexión (ej. 106 f).'},
+ {id:8,tab:'r2',title:'Del paralelogramo a la matriz',ref:'Ej. 87, 103 y 351',
+  steps:['Halle la matriz A que envía el cuadrado unitario al paralelogramo de vértices (0,0), (3,1), (4,3), (1,2), en ese orden (Ae₁ debe ser (3,1) y Ae₂ debe ser (1,2)).','Compruebe en el lienzo que el paralelogramo verde tiene exactamente esos vértices.','Lea det A y el área de la imagen. Cambie la figura a «Disco unitario» y observe en qué se convierte.'],
+  inputs:[{k:'area',t:'num',l:'Área del paralelogramo'},{k:'unique',t:'choice',l:'¿Es única la matriz?',o:['Sí: queda determinada por las imágenes de e₁ y e₂','No: cualquier matriz con det = 5 sirve','No: la transpuesta también sirve']},{k:'disco',t:'choice',l:'La imagen del disco unitario es',o:['una elipse (región convexa)','un disco de radio 5','una «media luna»','un cuadrado']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[3,1],[1,2]],0.01))p.push('La matriz A no envía el cuadrado al paralelogramo pedido (revise qué columna es Ae₁).');if(!(Math.abs(i.area-5)<0.01))p.push('El área no es correcta.');if(i.unique!==0)p.push('Revise la unicidad.');if(i.disco!==0)p.push('Revise la imagen del disco.');return p;},
+  note:'Una transformación lineal queda determinada por las imágenes de una base: A = (Ae₁ | Ae₂). |det A| es el área del paralelogramo imagen del cuadrado unitario, y toda región de área V pasa a tener área |det A|·V; los convexos van a convexos.'},
+ {id:9,tab:'r2',title:'Deshacer el movimiento',ref:'Ej. 100, 201, 211, 219 y 316',
+  steps:['Configure A = [[2,1],[1,2]].','Pulse <b>↩ Deshacer</b> y observe cómo la figura naranja regresa a su lugar. Marque «Mostrar A⁻¹(figura)»: la imagen azul es el movimiento inverso.','Lea A⁻¹ y det A⁻¹ en el panel. Ponga B = A⁻¹ (escríbala en B) y componga: ¿qué matriz se obtiene?'],
+  inputs:[{k:'inv',t:'mat2',l:'A⁻¹ = [[a, b], [c, d]]'},{k:'detinv',t:'num',l:'det A⁻¹'},{k:'undo',t:'choice',l:'Del catálogo del plano, ¿cuál movimiento NO se puede deshacer?',o:['la proyección','la rotación','la reflexión','la cizalla']}],
+  check:(c,i)=>{const p=[];if(!near(c.A2,[[2,1],[1,2]],0.01))p.push('La matriz A no es [[2,1],[1,2]].');if(!nearV(i.inv,[2/3,-1/3,-1/3,2/3],0.01))p.push('La inversa escrita no es correcta.');if(!(Math.abs(i.detinv-1/3)<0.01))p.push('det A⁻¹ no es correcto.');if(i.undo!==0)p.push('Revise cuál movimiento no es invertible.');return p;},
+  note:'A⁻¹ = (1/det A)·[[d,−b],[−c,a]] y det A⁻¹ = 1/det A: si A triplica el área, A⁻¹ la divide por 3. A·A⁻¹ = I: aplicar A y luego A⁻¹ no mueve nada. (AB)⁻¹ = B⁻¹A⁻¹: se deshace primero lo último que se hizo.'},
+ {id:10,tab:'r3',title:'Espejo en el espacio',ref:'Ej. 81, 321 y 359',
+  steps:['En la pestaña <b>R³</b> configure la reflexión respecto del plano x + y + z = 0 (catálogo «Reflexión» con n = (1,1,1), o a mano con S = I − 2nnᵀ/(n·n)).','Gire la vista arrastrando y observe el cubo reflejado. Lea det S y el pill de orientación.','Consulte en «Imágenes de los ocho vértices» qué le pasa a (1,1,1) (=n) y razone qué le pasa a cualquier vector del plano, por ejemplo (1,−1,0).'],
+  inputs:[{k:'det',t:'num',l:'det S'},{k:'Sn',t:'vec3',l:'S(1,1,1)'},{k:'Sv',t:'vec3',l:'S(1,−1,0)'}],
+  check:(c,i)=>{const p=[];const T=[[1/3,-2/3,-2/3],[-2/3,1/3,-2/3],[-2/3,-2/3,1/3]];if(!near(c.A3,T,0.01))p.push('La matriz A de R³ no es la reflexión respecto del plano x + y + z = 0.');if(!(Math.abs(i.det+1)<0.01))p.push('El determinante no es correcto.');if(!nearV(i.Sn,[-1,-1,-1],0.02))p.push('S(1,1,1) no es correcto.');if(!nearV(i.Sv,[1,-1,0],0.02))p.push('S(1,−1,0) no es correcto.');return p;},
+  note:'S = I − 2nnᵀ/(n·n): Sn = −n y Sv = v si v ⊥ n (el plano queda fijo punto a punto). det S = −1: el volumen se conserva pero la terna (Se₁, Se₂, Se₃) deja de cumplir la regla de la mano derecha. S² = I.'},
+ {id:11,tab:'r3',title:'Girar el cubo',ref:'Ej. 82, 108 y 359',
+  steps:['Configure R_z(90°) (catálogo «Rotación alrededor del eje z», θ = 90).','Pulse <b>▶ Animar</b>. Use «Desde arriba» para ver el giro y «Vista general» para ver qué vértices del cubo no se mueven.','Lea det A y la lista de vértices fijos. Consulte la imagen de (1,1,1).'],
+  inputs:[{k:'det',t:'num',l:'det A'},{k:'fix',t:'choice',l:'Vértices del cubo que quedan fijos',o:['(0,0,0) y (0,0,1)','(0,0,0) y (1,0,0)','ninguno','los ocho']},{k:'img',t:'vec3',l:'Imagen de (1,1,1)'}],
+  check:(c,i)=>{const p=[];if(!near(c.A3,[[0,-1,0],[1,0,0],[0,0,1]],0.01))p.push('La matriz A no es R_z(90°).');if(!(Math.abs(i.det-1)<0.01))p.push('El determinante no es correcto.');if(i.fix!==0)p.push('Revise los vértices fijos (son los puntos del eje de giro).');if(!nearV(i.img,[-1,1,1],0.02))p.push('La imagen de (1,1,1) no es correcta.');return p;},
+  note:'El eje de rotación es el conjunto de puntos fijos. det = 1: conserva volumen y orientación. R_z(α)R_z(β) = R_z(α+β) y R_z(θ)⁻¹ = R_z(−θ) = R_z(θ)ᵀ.'},
+ {id:12,tab:'r3',title:'Aplastar e incrustar: matrices no cuadradas',ref:'Ej. 66, 80, 91, 93 y 228–230',
+  steps:['En <b>R³</b> configure la proyección sobre el plano z = 0 (catálogo «Proyección» con n = (0,0,1), es decir diag(1,1,0)). Lea det y el volumen de la imagen; intente <b>↩ Deshacer</b>.','En <b>R² ↔ R³</b>, modo R³ → R², use la matriz [[1,0,0],[0,1,0]] («Olvidar z»). Observe la línea roja (núcleo) y los puntos w y w + k.','Cambie a R² → R³ con la matriz del ej. 66, [[1,0],[2,−1],[3,4]]. Observe el plano del rango y lea su normal.'],
+  inputs:[{k:'vol',t:'num',l:'Volumen de la imagen del cubo bajo la proyección'},{k:'ker',t:'choice',l:'Núcleo de T(x,y,z) = (x,y)',o:['el eje z','el plano z = 0','solo el origen','el eje x']},{k:'img',t:'vec3',l:'Imagen de (1,1) bajo la matriz 3×2 del ej. 66'},{k:'inv',t:'choice',l:'¿Tiene inversa una matriz 3×2 o una 2×3?',o:['No: solo una matriz cuadrada puede tener inversa (a lo sumo inversas laterales, no únicas)','Sí, si sus columnas son independientes','Sí: la inversa es la transpuesta','Sí, la 2×3 porque es sobreyectiva']}],
+  check:(c,i)=>{const p=[];if(!near(c.A3,[[1,0,0],[0,1,0],[0,0,0]],0.01))p.push('Deje en R³ la proyección sobre z = 0, diag(1,1,0).');if(!near(c.M23,[[1,0,0],[0,1,0]],0.01))p.push('Deje la matriz 2×3 [[1,0,0],[0,1,0]] en la pestaña de no cuadradas.');if(!near(c.M32,[[1,0],[2,-1],[3,4]],0.01))p.push('Deje la matriz 3×2 del ej. 66 en la pestaña de no cuadradas.');if(!(Math.abs(i.vol)<0.01))p.push('El volumen no es correcto.');if(i.ker!==0)p.push('Revise el núcleo.');if(!nearV(i.img,[1,1,7],0.02))p.push('La imagen de (1,1) no es correcta.');if(i.inv!==0)p.push('Revise la existencia de inversas para matrices no cuadradas.');return p;},
+  note:'Una matriz m×n lleva Rⁿ a Rᵐ. Si m < n aplasta (núcleo no trivial, no inyectiva); si m > n incrusta (el rango es un subespacio propio, no sobreyectiva). Nunca hay inversa bilateral; a lo sumo inversas laterales, y no son únicas. Aplastar dentro de R³ (det = 0) tampoco se puede deshacer.'}
+];
+function getInputs(m){const st=mInputs[m.id]||{};const out={};for(const f of m.inputs){if(f.t==='num')out[f.k]=parseNum(st[f.k]);else if(f.t==='vec2')out[f.k]=[0,1].map(j=>parseNum(st[f.k+'_'+j]));else if(f.t==='vec3')out[f.k]=[0,1,2].map(j=>parseNum(st[f.k+'_'+j]));else if(f.t==='mat2')out[f.k]=[0,1,2,3].map(j=>parseNum(st[f.k+'_'+j]));else if(f.t==='choice')out[f.k]=(st[f.k]===undefined||st[f.k]==='')?-1:+st[f.k];}return out;}
+function inputHTML(m){const st=mInputs[m.id]||{};const d=`data-m="${m.id}"`;return m.inputs.map(f=>{let h='<div class="minput"><span>'+f.l+':</span>';const inp=(key,ph)=>`<input type="text" inputmode="decimal" ${d} data-k="${key}" value="${esc(st[key]||'')}" placeholder="${ph||''}">`;
+  if(f.t==='num')h+=inp(f.k);else if(f.t==='vec2')h+='( '+inp(f.k+'_0','x')+' , '+inp(f.k+'_1','y')+' )';else if(f.t==='vec3')h+='( '+inp(f.k+'_0','x')+' , '+inp(f.k+'_1','y')+' , '+inp(f.k+'_2','z')+' )';
+  else if(f.t==='mat2')h+='[[ '+inp(f.k+'_0','a')+' , '+inp(f.k+'_1','b')+' ], [ '+inp(f.k+'_2','c')+' , '+inp(f.k+'_3','d')+' ]]';
+  else if(f.t==='choice'){h+=`<select ${d} data-k="${f.k}"><option value="">— elija —</option>`+f.o.map((o,j)=>`<option value="${j}" ${String(st[f.k])===String(j)?'selected':''}>${o}</option>`).join('')+'</select>';}
+  return h+'</div>';}).join('');}
+function missionHTML(m,compact){const isDone=done.has(m.id);const act=activeMission===m.id;let h=`<div class="mission ${isDone?'done':''} ${act?'active':''}" id="mis-${m.id}${compact?'-c':''}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center"><div><h3>Misión ${m.id}. ${m.title} ${isDone?'<span class="pill ok">completada</span>':''}</h3><div class="ref">Pestaña: ${m.id===12?'R³ · el espacio y R² ↔ R³ · no cuadradas':m.tab==='r2'?'R² · el plano':m.tab==='r3'?'R³ · el espacio':'R² ↔ R³'} · Basada en ${m.ref} de la miscelánea</div></div>`+(compact?'':`<button class="btn small primary" data-act="goto" data-tab="${m.tab}" data-m="${m.id}">Trabajar esta misión →</button>`)+`</div>`;
+  if(compact)h+='<details'+(isDone?'':' open')+'><summary>Pasos y respuestas</summary>';
+  h+='<ol>'+m.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>'+inputHTML(m)+`<div class="row"><button class="btn primary small" data-act="check" data-m="${m.id}">Comprobar misión ${m.id}</button><span class="tiny">Deje la matriz configurada como se pide antes de comprobar.</span></div><div class="msg-slot" id="msg-${m.id}${compact?'-c':''}"></div>`;
+  if(isDone)h+='<div class="note"><b>Lo que debe quedar claro:</b> '+m.note+'</div>';if(compact)h+='</details>';return h+'</div>';}
+function renderMissions(){
+  document.getElementById('lista-misiones').innerHTML=MISSIONS.map(m=>missionHTML(m,false)).join('');
+  for(const t of ['r2','r3','ns']){const box=document.getElementById('mis-'+t);const m=MISSIONS.find(x=>x.id===activeMission);box.innerHTML=(m&&(m.tab===t||(m.id===12&&t==='ns')))?missionHTML(m,true):'';}
+  const n=done.size;document.getElementById('prog-txt').textContent=n+'/12';document.getElementById('prog-bar').style.width=(100*n/12)+'%';
+  const cc=document.getElementById('constancia-card');if(n===12){cc.style.display='';document.getElementById('constancia-txt').innerHTML=studentCode.trim().length>=4?'<div class="kv">Las 12 misiones están completas. Copie esta constancia en la pregunta final del cuestionario <b>Taller 3</b> de Moodle:</div><div class="const">'+constancia(studentCode)+'</div><div class="hint">La constancia depende de su código UIS y del laboratorio completo.</div>':'<div class="kv">Las 12 misiones están completas. Escriba su <b>código UIS</b> arriba a la derecha para generar la constancia.</div>';}else cc.style.display='none';
+}
+document.body.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.m||!el.dataset.k)return;const id=+el.dataset.m;mInputs[id]=mInputs[id]||{};mInputs[id][el.dataset.k]=el.value;save();
+  // sincronizar copias
+  document.querySelectorAll(`[data-m="${id}"][data-k="${el.dataset.k}"]`).forEach(o=>{if(o!==el)o.value=el.value;});});
+document.body.addEventListener('change',e=>{const el=e.target;if(el.tagName==='SELECT'&&el.dataset.m&&el.dataset.k){const id=+el.dataset.m;mInputs[id]=mInputs[id]||{};mInputs[id][el.dataset.k]=el.value;save();document.querySelectorAll(`select[data-m="${id}"][data-k="${el.dataset.k}"]`).forEach(o=>{if(o!==el)o.value=el.value;});}});
+function checkMission(id){const m=MISSIONS.find(x=>x.id===id);const c={A2:state2.A,B2:state2.B,compose:state2.compose,order:state2.order,A3:state3.A,M32:stateNS.M32,M23:stateNS.M23};const i=getInputs(m);
+  const missing=m.inputs.filter(f=>{const v=i[f.k];return f.t==='choice'?v<0:(Array.isArray(v)?v.some(x=>isNaN(x)):isNaN(v));});
+  let probs=missing.length?['Faltan respuestas o hay valores no numéricos: '+missing.map(f=>f.l).join('; ')+'.']:m.check(c,i);
+  const ok=probs.length===0;if(ok){done.add(id);save();}
+  renderMissions();
+  for(const suf of ['','-c']){const slot=document.getElementById('msg-'+id+suf);if(slot)slot.innerHTML='<div class="msg '+(ok?'ok':'bad')+'">'+(ok?'✔ Misión '+id+' completada. Lea la nota «Lo que debe quedar claro».':'✘ Aún no: '+probs.join(' ')+' No se revela la respuesta: revise la miscelánea, los pasos y el panel de lectura, y vuelva a intentarlo.')+'</div>';}
+}
+function fnv(str){let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h>>>0;}
+function constancia(code,ids){const list=ids||[...done];const s=code.trim()+'|AL1-22979-T3-2026-2|'+list.sort((a,b)=>a-b).join(',');const h1=fnv(s),h2=fnv(s+'#'+h1);const t=x=>x.toString(36).toUpperCase().padStart(7,'0').slice(-4);return 'T3-'+t(h1)+'-'+t(h2);}
+document.getElementById('codigo').addEventListener('input',e=>{studentCode=e.target.value;save();renderMissions();});
+
+// verificador para el docente: ?verificar
+if(/verificar/.test(location.search)){const v=document.getElementById('verificador');v.innerHTML='<div class="card"><h3>Verificador de constancias (docente)</h3><div class="minput">Código UIS: <input type="text" id="vcode"> Constancia: <input type="text" id="vconst" style="width:170px"> <button class="btn small primary" id="vbtn">Verificar</button></div><div id="vres"></div></div>';
+  document.getElementById('vbtn').addEventListener('click',()=>{const code=document.getElementById('vcode').value;const c=document.getElementById('vconst').value.trim().toUpperCase();const exp=constancia(code,[1,2,3,4,5,6,7,8,9,10,11,12]);document.getElementById('vres').innerHTML='<div class="msg '+(c===exp?'ok':'bad')+'">'+(c===exp?'✔ Constancia válida para el código '+esc(code)+' (12/12 misiones).':'✘ La constancia no corresponde a ese código con las 12 misiones completas.')+'</div>';});}
+
+// =============== inicio ===============
+load();document.getElementById('codigo').value=studentCode;
+renderMissions();render2();render3();renderNS();
+})();
+</script>
+</body>
+</html>
